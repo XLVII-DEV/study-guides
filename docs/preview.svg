@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 320" width="100%" role="img" aria-label="Study Guides interactive HTML preview: Light and Dark mode, 4-block pedagogy, Timed Exam and Anki export">
+  <style>
+    .bg-frame { fill: #fbf7ec; stroke: #dfd6bc; stroke-width: 1.5; animation: themeBg 8s ease-in-out infinite; }
+    .sidebar { fill: #f4eedb; stroke: #dfd6bc; stroke-width: 1; animation: themeSide 8s ease-in-out infinite; }
+    .card { fill: #fffdf7; stroke: #dfd6bc; stroke-width: 1; animation: themeCard 8s ease-in-out infinite; }
+    .ink { fill: #1f2421; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; animation: themeInk 8s ease-in-out infinite; }
+    .serif { font-family: "Times New Roman", Georgia, serif; }
+    .muted { fill: #5a5549; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; animation: themeMuted 8s ease-in-out infinite; }
+    .accent { fill: #8c5214; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; animation: themeAccent 8s ease-in-out infinite; }
+    .pill-bg { fill: #f3e6cf; stroke: #8c5214; stroke-width: 1; animation: themePill 8s ease-in-out infinite; }
+    .ok-bg { fill: #dcf3ea; stroke: #146c53; stroke-width: 1; }
+    .ok-ink { fill: #146c53; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .pulse { animation: pulseStep 8s ease-in-out infinite; }
+    @keyframes themeBg { 0%, 42%, 100% { fill: #fbf7ec; stroke: #dfd6bc; } 50%, 92% { fill: #141310; stroke: #3a342a; } }
+    @keyframes themeSide { 0%, 42%, 100% { fill: #f4eedb; stroke: #dfd6bc; } 50%, 92% { fill: #26231d; stroke: #3a342a; } }
+    @keyframes themeCard { 0%, 42%, 100% { fill: #fffdf7; stroke: #dfd6bc; } 50%, 92% { fill: #1d1b17; stroke: #3a342a; } }
+    @keyframes themeInk { 0%, 42%, 100% { fill: #1f2421; } 50%, 92% { fill: #ede8dc; } }
+    @keyframes themeMuted { 0%, 42%, 100% { fill: #5a5549; } 50%, 92% { fill: #aba392; } }
+    @keyframes themeAccent { 0%, 42%, 100% { fill: #8c5214; } 50%, 92% { fill: #e5a94c; } }
+    @keyframes themePill { 0%, 42%, 100% { fill: #f3e6cf; stroke: #8c5214; } 50%, 92% { fill: #2e2414; stroke: #e5a94c; } }
+    @keyframes pulseStep { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+  </style>
+
+  <!-- Outer window -->
+  <rect class="bg-frame" x="2" y="2" width="876" height="316" rx="12"/>
+
+  <!-- Sidebar -->
+  <rect class="sidebar" x="2" y="2" width="196" height="316" rx="12"/>
+  <text class="ink serif" x="24" y="34" font-size="15" font-weight="700">Contents</text>
+  <rect class="card" x="20" y="48" width="160" height="26" rx="5"/>
+  <text class="muted" x="30" y="65" font-size="11">Filter sections (/)...</text>
+  <rect class="pill-bg" x="20" y="88" width="160" height="26" rx="6"/>
+  <text class="accent" x="30" y="105" font-size="11.5" font-weight="700">01 · Teacher's Guide</text>
+  <text class="muted" x="30" y="132" font-size="11.5">02 · Fill-in Practice</text>
+  <text class="muted" x="30" y="156" font-size="11.5">03 · 3-Level Quiz</text>
+  <text class="muted" x="30" y="180" font-size="11.5">04 · A4 Cheat-Sheet</text>
+  <text class="muted" x="24" y="294" font-size="10">100% Offline · 0 CDNs</text>
+
+  <!-- Topbar -->
+  <text class="muted" x="220" y="30" font-size="11.5" font-weight="600">study-guides · 6-Slot Compiler</text>
+  <rect class="pill-bg" x="748" y="14" width="110" height="24" rx="6"/>
+  <text class="accent" x="803" y="30" font-size="11" font-weight="700" text-anchor="middle">Light / Dark</text>
+
+  <!-- Hero Card -->
+  <rect class="card" x="220" y="50" width="638" height="106" rx="8"/>
+  <text class="accent" x="240" y="73" font-size="10.5" font-weight="700" letter-spacing="1">BLOCK 1 · MASTER PROFESSOR</text>
+  <text class="ink serif" x="240" y="98" font-size="22" font-weight="700">Transactions &amp; ACID Guarantees</text>
+  <text class="muted" x="240" y="119" font-size="12">Intuition first · Step-trace mechanism · Worked example · Common mistake vs Right way</text>
+  <rect class="pill-bg" x="240" y="128" width="142" height="18" rx="4"/>
+  <text class="accent" x="311" y="140.5" font-size="10" font-weight="700" text-anchor="middle">-80% LLM Output Tokens</text>
+  <rect class="ok-bg" x="392" y="128" width="150" height="18" rx="4"/>
+  <text class="ok-ink" x="467" y="140.5" font-size="10" font-weight="700" text-anchor="middle">Anti-Bias Quiz: PASS</text>
+
+  <!-- Bottom 2 Cards -->
+  <rect class="card pulse" x="220" y="172" width="310" height="126" rx="8"/>
+  <text class="accent" x="240" y="196" font-size="10.5" font-weight="700">BLOCK 2 &amp; 3 · ACTIVE RECALL</text>
+  <text class="ink serif" x="240" y="218" font-size="16" font-weight="700">Timed Exam + Anki (.tsv)</text>
+  <text class="muted" x="240" y="240" font-size="11.5">• Drag-and-drop &amp; typed drills</text>
+  <text class="muted" x="240" y="258" font-size="11.5">• 1 min/question exam countdown</text>
+  <text class="muted" x="240" y="276" font-size="11.5">• 1-click UTF-8 Anki deck export</text>
+
+  <rect class="card" x="548" y="172" width="310" height="126" rx="8"/>
+  <text class="accent" x="568" y="196" font-size="10.5" font-weight="700">BLOCK 4 · PRINT &amp; PRESETS</text>
+  <text class="ink serif" x="568" y="218" font-size="16" font-weight="700">3 Themes + A4 Summary</text>
+  <text class="muted" x="568" y="240" font-size="11.5">• warm-serif / ink-editorial / slate-tech</text>
+  <text class="muted" x="568" y="258" font-size="11.5">• 7 built-in UI languages</text>
+  <text class="muted" x="568" y="276" font-size="11.5">• Cmd/Ctrl + P prints crisp A4</text>
+</svg>
