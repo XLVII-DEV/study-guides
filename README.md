@@ -1,4 +1,4 @@
-# Master Study Guides (Agent Skill)
+# Study Guides (Agent Skill)
 
 A standard, 100% offline **Agent Skill** (`SKILL.md`) that turns course notes, slides, and exercises into high-retention interactive HTML study guides — while cutting LLM output token usage by **~75–80%**.
 
@@ -19,13 +19,13 @@ A standard, 100% offline **Agent Skill** (`SKILL.md`) that turns course notes, s
 Clone or copy this folder into your global or workspace skills directory:
 
 ```bash
-git clone https://github.com/XLVII-DEV/master-study-guides.git ~/.agents/skills/master-study-guides
+git clone https://github.com/XLVII-DEV/study-guides.git ~/.agents/skills/study-guides
 ```
 
 Or install via the open skills CLI:
 
 ```bash
-npx skills add XLVII-DEV/master-study-guides
+npx skills add XLVII-DEV/study-guides
 ```
 
 ## Quick Usage (CLI)

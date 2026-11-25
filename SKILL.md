@@ -1,5 +1,5 @@
 ---
-name: master-study-guides
+name: study-guides
 description: >-
   Builds high-retention, 100% offline interactive HTML study guides ("study guide",
   "cheat-sheet", "exam prep") for any subject, language, and academic level in the
@@ -8,7 +8,7 @@ description: >-
   persistent 3-level anti-bias quizzes, and a printable A4 cheat-sheet.
 ---
 
-# Master Study Guides
+# Study Guides
 
 > **GOLDEN RULE FOR THE AGENT**: **NEVER** hand-write a full HTML document, CSS, sidebar, or JavaScript engine from scratch. The entire visual and interactive layer lives in [`assets/template.html`](./assets/template.html). Your only job is to author a **6-slot** content file and compile it with [`scripts/build_guide.py`](./scripts/build_guide.py), which automatically runs all structural, security, and anti-bias checks before writing the output file.
 
