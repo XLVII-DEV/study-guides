@@ -3,7 +3,7 @@
 Anti-bias and structural verifier for HTML study guides and quizzes.
 Checks global AND per-level quiz balance with prescriptive AI fix hints, plus
 optional strict structural validation (100% offline, DOM-safe, dark-mode SVGs,
-HTML sanitization, and solvable Block 4 autocomplete exercises).
+HTML sanitization, and solvable Block 2 autocomplete exercises).
 """
 
 from __future__ import annotations
@@ -152,7 +152,7 @@ class _StructureSecurityParser(HTMLParser):
 
         if t in ("iframe", "embed"):
             self.errors.append(
-                f"Seguretat HTML: etiqueta prohibida <{t}>. → Correcció IA: elimina <{t}> i usa HTML/SVG nadiu."
+                f"HTML security: forbidden <{t}> tag. → AI Fix: remove <{t}> and use native HTML/SVG."
             )
 
         if t == "script":
@@ -160,7 +160,7 @@ class _StructureSecurityParser(HTMLParser):
             sid = attr_map.get("id", "")
             if "src" in attr_map:
                 self.errors.append(
-                    f"Seguretat/Offline: <script src='{attr_map['src']}'> prohibit. → Correcció IA: cap script extern."
+                    f"Security/Offline: forbidden <script src='{attr_map['src']}'>. → AI Fix: no external scripts allowed."
                 )
             elif "application/json" in stype and sid in self.allowed_json_ids:
                 pass
@@ -168,8 +168,8 @@ class _StructureSecurityParser(HTMLParser):
                 self.engine_scripts += 1
                 if self.engine_scripts > 1:
                     self.errors.append(
-                        "Seguretat HTML: s'ha detectat un <script> addicional fora del motor de la plantilla. "
-                        "→ Correcció IA: no escriguis blocs <script> dins els slots."
+                        "HTML security: extra <script> detected outside the template engine. "
+                        "→ AI Fix: do not write <script> blocks inside content slots."
                     )
 
         for k, v in attrs:
@@ -177,15 +177,15 @@ class _StructureSecurityParser(HTMLParser):
             val = (v or "").strip()
             if kl.startswith("on"):
                 self.errors.append(
-                    f"Seguretat DOM: atribut inline prohibit '{k}=' a <{t}>. "
-                    "→ Correcció IA: elimina els handlers inline dels slots."
+                    f"DOM security: forbidden inline event handler '{k}=' on <{t}>. "
+                    "→ AI Fix: remove inline handlers from content slots."
                 )
             if kl in ("href", "src", "data", "poster", "formaction", "xlink:href"):
                 normalized_scheme = re.sub(r"[\s\x00-\x1f]+", "", val).lower()
                 if normalized_scheme.startswith("javascript:") or normalized_scheme.startswith("vbscript:"):
                     self.errors.append(
-                        f"Seguretat URL: esquema prohibit '{val}' a <{t} {k}=...>. "
-                        "→ Correcció IA: usa ancoratges '#id' o rutes segures."
+                        f"URL security: forbidden URI scheme '{val}' on <{t} {k}=...>. "
+                        "→ AI Fix: use '#id' anchors or safe relative links."
                     )
 
     def handle_endtag(self, tag: str) -> None:
@@ -194,22 +194,21 @@ class _StructureSecurityParser(HTMLParser):
 
 
 def audit_guide_structure(raw_html: str) -> Tuple[List[str], List[str]]:
-    """Verify offline purity, required 4 blocks, DOM safety, dark-mode SVGs, and Block 4 solvability."""
+    """Verify offline purity, required 4 blocks, DOM safety, dark-mode SVGs, and Block 2 solvability."""
     errors: List[str] = []
     warnings: List[str] = []
 
     lang_m = re.search(r'<html\b[^>]*\blang=["\']([^"\']*)["\']', raw_html, flags=re.IGNORECASE)
     if not lang_m or not lang_m.group(1).strip() or "{{" in lang_m.group(1):
-        errors.append("Estructura: falta <html lang='...'> vàlid. → Correcció IA: defineix 'lang' dins @slot meta.")
+        errors.append("Structure: missing valid <html lang='...'>. → AI Fix: define 'lang' inside @slot meta.")
 
     for req_id in ("teoria", "practica", "autoavaluacio", "xuleta"):
         if not re.search(rf'\bid=["\']{req_id}["\']', raw_html):
-            errors.append(f"Estructura: falta el contenidor obligatori #{req_id}.")
+            errors.append(f"Structure: missing required container #{req_id}.")
 
     if "@media print" not in raw_html:
-        errors.append("Estructura: falta la regla @media print per a la Xuleta A4.")
+        errors.append("Structure: missing @media print rules for the A4 cheat-sheet.")
 
-    # Strip code blocks and script bodies before checking remote tags/URLs so code examples don't trigger false positives
     non_code_html = re.sub(r"<pre\b[^>]*>.*?</pre>", "", raw_html, flags=re.DOTALL | re.IGNORECASE)
     non_code_html = re.sub(r"<code\b[^>]*>.*?</code>", "", non_code_html, flags=re.DOTALL | re.IGNORECASE)
     non_code_html = re.sub(r"<script\b([^>]*)>.*?</script>", r"<script\1></script>", non_code_html, flags=re.DOTALL | re.IGNORECASE)
@@ -220,7 +219,7 @@ def audit_guide_structure(raw_html: str) -> Tuple[List[str], List[str]]:
         flags=re.IGNORECASE,
     )
     for url in ext_attr_refs:
-        errors.append(f"Offline: recurs extern prohibit '{url}'. → Correcció IA: fes tot el CSS, fonts i SVG 100% inline.")
+        errors.append(f"Offline: forbidden external asset '{url}'. → AI Fix: keep all CSS, fonts, and SVGs 100% inline.")
 
     for style_body in re.findall(r"<style\b[^>]*>(.*?)</style>", raw_html, flags=re.DOTALL | re.IGNORECASE):
         css_urls = re.findall(
@@ -230,15 +229,13 @@ def audit_guide_structure(raw_html: str) -> Tuple[List[str], List[str]]:
         )
         for tup in css_urls:
             url = next((u for u in tup if u), "")
-            errors.append(f"Offline CSS: recurs extern prohibit '{url}'. → Correcció IA: elimina URLs externes del CSS.")
+            errors.append(f"Offline CSS: forbidden external asset '{url}'. → AI Fix: remove external URLs from CSS.")
 
-    # HTMLParser tag & attribute security check
     sec_parser = _StructureSecurityParser()
     sec_parser.feed(non_code_html)
     sec_parser.close()
     errors.extend(sec_parser.errors)
 
-    # DOM safety check on executable <script> tags
     for sc_m in re.finditer(r"<script\b([^>]*)>(.*?)</script>", raw_html, flags=re.DOTALL | re.IGNORECASE):
         attrs, body = sc_m.group(1), sc_m.group(2)
         if "application/json" in attrs.lower():
@@ -248,11 +245,10 @@ def audit_guide_structure(raw_html: str) -> Tuple[List[str], List[str]]:
             body,
         ):
             errors.append(
-                "Seguretat DOM: ús prohibit d'innerHTML/outerHTML/insertAdjacentHTML/document.write/eval. "
-                "→ Correcció IA: usa createElement i textContent."
+                "DOM security: forbidden innerHTML/outerHTML/insertAdjacentHTML/document.write/eval usage. "
+                "→ AI Fix: use createElement and textContent."
             )
 
-    # Dark-mode SVG check
     for idx, svg_body in enumerate(re.findall(r"<svg\b.*?</svg>", raw_html, flags=re.DOTALL | re.IGNORECASE), start=1):
         bad_color = re.search(
             r'(?:fill|stroke)\s*[:=]\s*["\']?\s*(#000(?:000)?|#111(?:111)?|#1f2421|black)\b',
@@ -261,14 +257,13 @@ def audit_guide_structure(raw_html: str) -> Tuple[List[str], List[str]]:
         )
         if bad_color:
             errors.append(
-                f"SVG #{idx}: color fosc fix '{bad_color.group(1)}' invisible en mode fosc. "
-                f"→ Correcció IA: usa style='fill:var(--ink)' o 'stroke:var(--border-strong)'."
+                f"SVG #{idx}: hardcoded dark color '{bad_color.group(1)}' is invisible in dark mode. "
+                f"→ AI Fix: use style='fill:var(--ink)' or 'stroke:var(--border-strong)'."
             )
 
-    # Block 4 solvability check
     exercises = _extract_div_blocks_by_class(raw_html, "exercise")
     if not exercises:
-        warnings.append("Bloc 4: no s'ha trobat cap bloc .exercise dins #practica.")
+        warnings.append("Practice Block: no .exercise blocks found inside #practica.")
     for ex_idx, ex_html in enumerate(exercises, start=1):
         chip_vals = set()
         for span_tag in re.findall(r"<span\b[^>]*>", ex_html, flags=re.IGNORECASE):
@@ -281,19 +276,19 @@ def audit_guide_structure(raw_html: str) -> Tuple[List[str], List[str]]:
             cls = (_attr_val(span_tag, "class") or "").split()
             ans = _attr_val(span_tag, "data-ans")
             if "slot" in cls and ans is None:
-                errors.append(f"Bloc 4 Exercici #{ex_idx}: hi ha un <span class='slot'> sense atribut data-ans.")
+                errors.append(f"Practice Exercise #{ex_idx}: found <span class='slot'> without data-ans attribute.")
             elif "slot" in cls and ans is not None:
                 alts = [_norm(a) for a in ans.split("|") if _norm(a)]
                 if not alts or not any(a in chip_vals for a in alts):
                     errors.append(
-                        f"Bloc 4 Exercici #{ex_idx}: el buit data-ans='{ans}' no té cap .chip[data-val] coincident "
-                        f"(disponibles: {sorted(chip_vals)}). → Correcció IA: afegeix <span class=\"chip\" data-val=\"{ans.split('|')[0]}\">."
+                        f"Practice Exercise #{ex_idx}: slot data-ans='{ans}' has no matching .chip[data-val] "
+                        f"(available: {sorted(chip_vals)}). → AI Fix: add <span class=\"chip\" data-val=\"{ans.split('|')[0]}\">."
                     )
 
         for inp_tag in re.findall(r"<input\b[^>]*>", ex_html, flags=re.IGNORECASE):
             ans = _attr_val(inp_tag, "data-ans")
             if ans is not None and not _norm(ans):
-                errors.append(f"Bloc 4 Exercici #{ex_idx}: hi ha un <input> amb data-ans buit.")
+                errors.append(f"Practice Exercise #{ex_idx}: found <input> with empty data-ans.")
 
         for sel_m in re.finditer(r"(<select\b[^>]*>)(.*?)</select>", ex_html, flags=re.DOTALL | re.IGNORECASE):
             sel_tag, sel_body = sel_m.group(1), sel_m.group(2)
@@ -307,8 +302,8 @@ def audit_guide_structure(raw_html: str) -> Tuple[List[str], List[str]]:
                 opt_vals.add(_norm(v if v is not None else re.sub(r"<[^>]+>", "", opt_m.group(2))))
             if not alts or not any(a in opt_vals for a in alts):
                 errors.append(
-                    f"Bloc 4 Exercici #{ex_idx}: el <select data-ans='{ans}'> no té cap <option> amb aquest valor "
-                    f"(opcions: {sorted(opt_vals)})."
+                    f"Practice Exercise #{ex_idx}: <select data-ans='{ans}'> has no matching <option> value "
+                    f"(options: {sorted(opt_vals)})."
                 )
 
     return errors, warnings
@@ -341,6 +336,8 @@ def extract_questions(raw_html: str) -> Tuple[str, List[Dict[str, Any]]]:
                         "options": [_clean_plain_text(str(o)) for o in opts],
                         "correct": corr,
                     }
+                    if "why" in item and item["why"] is not None:
+                        entry["why"] = _clean_plain_text(str(item["why"]))
                     if "level" in item and item["level"] is not None:
                         entry["level"] = item["level"]
                     parsed.append(entry)
@@ -465,7 +462,7 @@ def _audit_distribution(
         num = int(item.get("num", idx))
         pos_counts[corr] = pos_counts.get(corr, 0) + 1
         correct_seq.append(corr)
-        seq_meta.append((num, str(item.get("id", f"P{num}"))))
+        seq_meta.append((num, str(item.get("id", f"Q{num}"))))
 
         lens = [len(o) for o in opts]
         corr_len = lens[corr]
@@ -487,8 +484,8 @@ def _audit_distribution(
             letter = chr(65 + idx)
             if cnt > max_allowed:
                 errors.append(
-                    f"{prefix}Sesgo de lletra '{letter}': apareix {cnt}/{n_valid} vegades com a correcta (màxim permès: {max_allowed}). "
-                    f"→ Correcció IA: intercanvia l'opció correcta cap a {', '.join(underused)}."
+                    f"{prefix}Letter bias '{letter}': appears {cnt}/{n_valid} times as correct (max allowed: {max_allowed}). "
+                    f"→ AI Fix: swap a correct option toward {', '.join(underused)}."
                 )
     elif n_valid >= 4:
         max_allowed_small = math.floor(n_valid * 0.50)
@@ -496,19 +493,18 @@ def _audit_distribution(
             letter = chr(65 + idx)
             if cnt > max_allowed_small:
                 errors.append(
-                    f"{prefix}Sesgo de lletra '{letter}': apareix {cnt}/{n_valid} vegades com a correcta (màxim permès: {max_allowed_small}). "
-                    f"→ Correcció IA: intercanvia l'opció correcta cap a {', '.join(underused)}."
+                    f"{prefix}Letter bias '{letter}': appears {cnt}/{n_valid} times as correct (max allowed: {max_allowed_small}). "
+                    f"→ AI Fix: swap a correct option toward {', '.join(underused)}."
                 )
 
     if require_all_slots_ge8 and n_valid >= 8:
         missing = [chr(65 + idx) for idx in range(slot_count) if pos_counts.get(idx, 0) == 0]
         if missing:
             errors.append(
-                f"{prefix}Distribució incompleta: les posicions {', '.join(missing)} no s'han fet servir cap vegada amb {n_valid} preguntes. "
-                f"→ Correcció IA: mou alguna resposta correcta a {', '.join(missing)}."
+                f"{prefix}Incomplete answer coverage: slots {', '.join(missing)} were never used across {n_valid} questions. "
+                f"→ AI Fix: move at least one correct answer into {', '.join(missing)}."
             )
 
-    # Report every contiguous streak >= 3 across the subset
     run_start = 0
     for idx in range(1, len(correct_seq) + 1):
         at_end = idx == len(correct_seq)
@@ -521,20 +517,20 @@ def _audit_distribution(
                 e_num, e_id = seq_meta[idx - 1]
                 m_num, m_id = seq_meta[mid]
                 errors.append(
-                    f"{prefix}Ratxa previsible: {run_len} respostes consecutives amb la lletra '{letter}' "
-                    f"(P{s_num} [{s_id}]..P{e_num} [{e_id}]). "
-                    f"→ Correcció IA: canvia la posició correcta de P{m_num} ({m_id})."
+                    f"{prefix}Predictable streak: {run_len} consecutive '{letter}' answers "
+                    f"(Q{s_num} [{s_id}]..Q{e_num} [{e_id}]). "
+                    f"→ AI Fix: rotate the correct position of Q{m_num} ({m_id})."
                 )
             run_start = idx
 
     if longest_eligible >= 4:
         ratio_longest = longest_correct_hits / longest_eligible
         if ratio_longest > max_longest_ratio:
-            scope_word = "de nivell" if scope_label else "global"
+            scope_word = "level" if scope_label else "global"
             errors.append(
-                f"{prefix}Sesgo {scope_word} de longitud: la resposta correcta és la més llarga en {longest_correct_hits}/{longest_eligible} "
-                f"preguntes ({ratio_longest:.0%} > {max_longest_ratio:.0%} màxim permès). "
-                f"→ Correcció IA: escurça les respostes correctes o detalla un distractor perquè sigui més llarg."
+                f"{prefix}Length bias ({scope_word}): the correct option is strictly longest in {longest_correct_hits}/{longest_eligible} "
+                f"questions ({ratio_longest:.0%} > {max_longest_ratio:.0%} max). "
+                f"→ AI Fix: shorten correct options or expand distractors with comparable technical depth."
             )
 
     stats = {
@@ -552,6 +548,7 @@ def audit_quiz(
     min_questions: int = 4,
     *,
     min_per_level: int = 0,
+    check_why_quality: bool = False,
 ) -> Dict[str, Any]:
     """Run global and per-level letter-distribution, length-bias, duplicate, and shortcut checks."""
     errors: List[str] = []
@@ -559,42 +556,48 @@ def audit_quiz(
     n = len(questions)
 
     if n == 0:
-        errors.append("No s'ha trobat cap pregunta de test reconeixible a l'HTML.")
+        errors.append("No recognizable quiz questions found in the HTML file.")
         return {"ok": False, "count": 0, "errors": errors, "warnings": warnings, "stats": {}}
 
     if n < min_questions:
-        errors.append(f"Només hi ha {n} preguntes (mínim requerit: {min_questions}).")
+        errors.append(f"Only {n} questions found (minimum required: {min_questions}).")
     elif n < 8:
-        warnings.append(f"Només hi ha {n} preguntes; per a simulacres d'examen es recomana >= 8.")
+        warnings.append(f"Only {n} questions found; >= 8 is recommended for balanced exams.")
 
     per_question_issues: List[Dict[str, Any]] = []
 
     for idx, item in enumerate(questions, start=1):
         num = item.get("num", idx)
-        qid = item.get("id", f"P{num}")
+        qid = item.get("id", f"Q{num}")
         opts = item["options"]
         corr = item["correct"]
 
         if "level" in item and isinstance(item["level"], bool):
-            errors.append(f"P{num} ({qid}): 'level' no pot ser booleà ({item['level']}). → Correcció IA: usa 1, 2 o 3.")
+            errors.append(f"Q{num} ({qid}): 'level' cannot be boolean ({item['level']}). → AI Fix: use 1, 2, or 3.")
 
         if len(opts) < 2:
-            errors.append(f"P{num} ({qid}): té menys de 2 opcions.")
+            errors.append(f"Q{num} ({qid}): has fewer than 2 options.")
             continue
         if not _is_int(corr):
-            errors.append(f"P{num} ({qid}): 'correct' ha de ser un enter (no booleà/text: {corr!r}).")
+            errors.append(f"Q{num} ({qid}): 'correct' must be an integer (not boolean/string: {corr!r}).")
             continue
         if corr < 0 or corr >= len(opts):
-            errors.append(f"P{num} ({qid}): índex correct={corr} fora de rang (0..{len(opts) - 1}).")
+            errors.append(f"Q{num} ({qid}): correct index {corr} out of range (0..{len(opts) - 1}).")
             continue
 
         norm_opts = [_norm(o) for o in opts]
         if any(not o for o in norm_opts) or len(set(norm_opts)) != len(norm_opts):
-            errors.append(f"P{num} ({qid}): conté opcions buides o duplicades. → Correcció IA: fes les 4 opcions diferents.")
+            errors.append(f"Q{num} ({qid}): contains empty or duplicate options. → AI Fix: make all 4 options distinct.")
+
+        if check_why_quality and "why" in item and len(str(item["why"]).strip()) < 35:
+            warnings.append(
+                f"Q{num} ({qid}): explanation 'why' is brief ({len(str(item['why']).strip())} chars); "
+                "explain both why the right answer holds AND why the main distractor fails."
+            )
 
         corr_text = opts[corr]
         if _TRIVIAL_ALL_NONE_RE.match(corr_text):
-            errors.append(f"P{num} ({qid}): la resposta correcta és una opció comodí ('{corr_text}').")
+            errors.append(f"Q{num} ({qid}): giveaway option '{corr_text}' cannot be the correct answer.")
 
         lens = [len(o) for o in opts]
         corr_len = lens[corr]
@@ -608,9 +611,9 @@ def audit_quiz(
             if ratio_max > 1.20 or ratio_mean > 1.35:
                 max_safe = min(int(max_dist * 1.20), int(mean_dist * 1.35))
                 msg = (
-                    f"P{num} ({qid}): opció correcta massa llarga ({corr_len} chars vs distractors {dist_lens}, "
+                    f"Q{num} ({qid}): correct option too long ({corr_len} chars vs distractors {dist_lens}, "
                     f"ratio_max={ratio_max:.2f}x, ratio_mean={ratio_mean:.2f}x). "
-                    f"→ Correcció IA: escurça la correcta a <= {max_safe} caràcters o amplia els distractors."
+                    f"→ AI Fix: trim correct option to <= {max_safe} chars or expand distractors."
                 )
                 errors.append(msg)
                 per_question_issues.append(
@@ -643,8 +646,8 @@ def audit_quiz(
             cnt = len(level_buckets.get(req_lvl, []))
             if cnt < min_per_level:
                 errors.append(
-                    f"[Nivell {req_lvl}] Només té {cnt} preguntes (mínim per nivell: {min_per_level}). "
-                    f"→ Correcció IA: afegeix {min_per_level - cnt} preguntes amb \"level\": {req_lvl}."
+                    f"[Level {req_lvl}] Only has {cnt} questions (minimum per level: {min_per_level}). "
+                    f"→ AI Fix: add {min_per_level - cnt} questions with \"level\": {req_lvl}."
                 )
 
     per_level_stats: Dict[str, Any] = {}
@@ -652,7 +655,7 @@ def audit_quiz(
         for lvl_key, lvl_questions in level_buckets.items():
             lvl_errors, lvl_stats = _audit_distribution(
                 lvl_questions,
-                scope_label=f"Nivell {lvl_key}",
+                scope_label=f"Level {lvl_key}",
                 max_letter_ratio_ge6=0.35,
                 max_longest_ratio=0.35,
                 require_all_slots_ge8=True,
@@ -683,12 +686,17 @@ def verify_html_file(
         report: Dict[str, Any] = {
             "ok": False,
             "count": 0,
-            "errors": ["JSON invàlid dins <script id='quiz-data'>. → Correcció IA: revisa la sintaxi JSON del banc de preguntes."],
+            "errors": ["Invalid JSON inside <script id='quiz-data'>. → AI Fix: check quiz JSON syntax."],
             "warnings": [],
             "stats": {},
         }
     else:
-        report = audit_quiz(questions, min_questions=min_questions, min_per_level=min_per_level)
+        report = audit_quiz(
+            questions,
+            min_questions=min_questions,
+            min_per_level=min_per_level,
+            check_why_quality=strict_guide,
+        )
 
     if strict_guide:
         struct_errors, struct_warnings = audit_guide_structure(raw)
@@ -701,16 +709,16 @@ def verify_html_file(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Verificador anti-sesgo i estructural de guies HTML")
-    parser.add_argument("html_file", type=Path, help="Ruta del fitxer HTML a auditar")
-    parser.add_argument("--min-questions", type=int, default=4, help="Mínim de preguntes globals (per defecte: 4)")
-    parser.add_argument("--min-per-level", type=int, default=0, help="Mínim de preguntes per nivell 1/2/3 (per defecte: 0)")
-    parser.add_argument("--strict-guide", action="store_true", help="Audita també blocs HTML, offline, seguretat DOM, SVG fosc i Bloc 4")
-    parser.add_argument("--json", action="store_true", help="Retorna l'informe en format JSON")
+    parser = argparse.ArgumentParser(description="Anti-bias and structural verifier for HTML study guides")
+    parser.add_argument("html_file", type=Path, help="Path to HTML file to audit")
+    parser.add_argument("--min-questions", type=int, default=4, help="Minimum global question count (default: 4)")
+    parser.add_argument("--min-per-level", type=int, default=0, help="Minimum questions per level 1/2/3 (default: 0)")
+    parser.add_argument("--strict-guide", action="store_true", help="Also verify offline purity, DOM security, dark-mode SVGs, and Block 2 solvability")
+    parser.add_argument("--json", action="store_true", help="Output JSON report")
     args = parser.parse_args()
 
     if not args.html_file.exists():
-        print(f"Error: no existeix el fitxer {args.html_file}", file=sys.stderr)
+        print(f"Error: file does not exist: {args.html_file}", file=sys.stderr)
         sys.exit(2)
 
     report = verify_html_file(
@@ -724,22 +732,22 @@ def main() -> None:
     else:
         status = "PASS" if report["ok"] else "FAIL"
         stats = report.get("stats", {})
-        print(f"[{status}] {args.html_file.name} (format={report['format']}, preguntes={report['count']})")
+        print(f"[{status}] {args.html_file.name} (format={report['format']}, questions={report['count']})")
         if stats:
             print(
-                f"  Distribució lletres: {stats.get('letter_distribution')} | "
-                f"Correcta més llarga: {stats.get('longest_correct_hits')}/{stats.get('longest_eligible')} "
+                f"  Letter distribution: {stats.get('letter_distribution')} | "
+                f"Correct longest: {stats.get('longest_correct_hits')}/{stats.get('longest_eligible')} "
                 f"({stats.get('longest_ratio', 0):.0%})"
             )
             for lvl_key, lvl_stats in stats.get("per_level", {}).items():
                 print(
-                    f"  Nivell {lvl_key} ({lvl_stats.get('questions')}p): "
-                    f"lletres={lvl_stats.get('letter_distribution')} | "
-                    f"més llarga={lvl_stats.get('longest_correct_hits')}/{lvl_stats.get('longest_eligible')} "
+                    f"  Level {lvl_key} ({lvl_stats.get('questions')}q): "
+                    f"letters={lvl_stats.get('letter_distribution')} | "
+                    f"longest={lvl_stats.get('longest_correct_hits')}/{lvl_stats.get('longest_eligible')} "
                     f"({lvl_stats.get('longest_ratio', 0):.0%})"
                 )
         for w in report["warnings"]:
-            print(f"  AVÍS: {w}")
+            print(f"  WARN: {w}")
         for err in report["errors"]:
             print(f"  ERROR: {err}")
 

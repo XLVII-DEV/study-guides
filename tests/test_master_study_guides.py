@@ -1,9 +1,11 @@
-"""Standalone unit tests for master-study-guides (build_guide.py and verify_html_quiz.py)."""
+"""Standalone unit tests for study-guides (build_guide.py, verify_html_quiz.py, and template.html)."""
 
 from __future__ import annotations
 
 import importlib.util
 import json
+import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -13,7 +15,8 @@ from pathlib import Path
 SKILL_DIR = Path(__file__).resolve().parent.parent
 BUILD_PATH = SKILL_DIR / "scripts" / "build_guide.py"
 VERIFY_PATH = SKILL_DIR / "scripts" / "verify_html_quiz.py"
-EXAMPLE_SLOTS = SKILL_DIR / "examples" / "minimal_guide.slots.txt"
+EXAMPLES_DIR = SKILL_DIR / "examples"
+EXAMPLE_SLOTS = EXAMPLES_DIR / "cs_acid_transactions.slots.txt"
 
 
 def _load_module(name: str, path: Path):
@@ -28,37 +31,76 @@ guide_builder = _load_module("build_guide", BUILD_PATH)
 quiz_verifier = _load_module("verify_html_quiz", VERIFY_PATH)
 
 
-class MasterStudyGuidesTests(unittest.TestCase):
-    def test_compile_verify_and_roundtrip_example(self) -> None:
+class StudyGuidesTests(unittest.TestCase):
+    def test_all_examples_compile_verify_and_roundtrip(self) -> None:
+        slot_files = sorted(EXAMPLES_DIR.glob("*.slots.txt"))
+        self.assertGreaterEqual(len(slot_files), 2)
+        node_bin = shutil.which("node")
+
         with tempfile.TemporaryDirectory() as tmp:
-            out_html = Path(tmp) / "compiled.html"
-            extracted = Path(tmp) / "extracted.slots.txt"
-            rebuilt = Path(tmp) / "rebuilt.html"
+            for slot_file in slot_files:
+                out_html = Path(tmp) / f"{slot_file.stem}.html"
+                extracted = Path(tmp) / f"{slot_file.stem}.extracted.txt"
+                rebuilt = Path(tmp) / f"{slot_file.stem}.rebuilt.html"
 
-            guide_builder.build(EXAMPLE_SLOTS, out_html)
-            rep = quiz_verifier.verify_html_file(out_html, min_questions=12, strict_guide=True, min_per_level=4)
-            self.assertTrue(rep["ok"], msg=f"Unexpected errors: {rep['errors']}")
+                guide_builder.build(slot_file, out_html)
+                rep = quiz_verifier.verify_html_file(out_html, min_questions=12, strict_guide=True, min_per_level=4)
+                self.assertTrue(rep["ok"], msg=f"{slot_file.name} errors: {rep['errors']}")
 
-            guide_builder.extract_slots_from_html(out_html, extracted)
-            guide_builder.build(extracted, rebuilt)
-            self.assertEqual(out_html.read_text(encoding="utf-8"), rebuilt.read_text(encoding="utf-8"))
+                guide_builder.extract_slots_from_html(out_html, extracted)
+                guide_builder.build(extracted, rebuilt)
+                self.assertEqual(out_html.read_text(encoding="utf-8"), rebuilt.read_text(encoding="utf-8"))
 
-    def test_edge_cases_and_atomic_cli_write(self) -> None:
+                html_text = out_html.read_text(encoding="utf-8")
+                self.assertIn("btnExportAnki", html_text)
+                self.assertIn("btnExamMode", html_text)
+
+                if node_bin:
+                    js_file = Path(tmp) / f"{slot_file.stem}.js"
+                    js_file.write_text(re.findall(r"<script>(.*?)</script>", html_text, re.S)[-1], encoding="utf-8")
+                    res = subprocess.run([node_bin, "--check", str(js_file)], capture_output=True, text=True)
+                    self.assertEqual(res.returncode, 0, msg=res.stderr)
+
+    def test_presets_and_seven_languages(self) -> None:
         base_raw = EXAMPLE_SLOTS.read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as tmp:
-            # 1. Code templates {{user.name}}, {{slot.teoria}} in title, HTML entities in h2, Java generics in options
+            for preset in ("warm-serif", "ink-editorial", "slate-tech"):
+                raw = base_raw.replace('"themePreset": "warm-serif"', f'"themePreset": "{preset}"')
+                p = Path(tmp) / f"{preset}.slots.txt"
+                p.write_text(raw, encoding="utf-8")
+                out = Path(tmp) / f"{preset}.html"
+                guide_builder.build(p, out)
+                self.assertIn(f'data-preset="{preset}"', out.read_text(encoding="utf-8"))
+
+            bad_raw = base_raw.replace('"themePreset": "warm-serif"', '"themePreset": "neon-cyber"')
+            bad_p = Path(tmp) / "bad_preset.slots.txt"
+            bad_p.write_text(bad_raw, encoding="utf-8")
+            with self.assertRaises(SystemExit):
+                guide_builder.build(bad_p, Path(tmp) / "bad.html")
+
+            for lang in ("en", "es", "ca", "fr", "de", "pt", "it"):
+                l_raw = base_raw.replace('"lang": "en"', f'"lang": "{lang}"')
+                lp = Path(tmp) / f"{lang}.slots.txt"
+                lp.write_text(l_raw, encoding="utf-8")
+                out = Path(tmp) / f"{lang}.html"
+                guide_builder.build(lp, out)
+                self.assertIn(f'<html lang="{lang}"', out.read_text(encoding="utf-8"))
+
+    def test_edge_cases_english_hints_and_atomic_cli_write(self) -> None:
+        base_raw = EXAMPLE_SLOTS.read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as tmp:
             edge_raw = (
                 base_raw.replace(
-                    '"title": "Guia Mestra · Exemple Mínim · Transaccions ACID"',
+                    '"title": "Study Guide · Database Transactions & ACID Guarantees"',
                     '"title": "Test {{slot.teoria}} Guide"',
                 )
                 .replace(
-                    '<h2 id="h-cicle">Cicle de vida d\'una transacció</h2>',
-                    '<h2 id="h-cicle">C++ &amp; Java &lt;T&gt;</h2>',
+                    '<h2 id="h-lifecycle">Why Transactions Exist &amp; How They Execute</h2>',
+                    '<h2 id="h-lifecycle">C++ &amp; Java &lt;T&gt;</h2>',
                 )
                 .replace("<pre><code>", "<pre><code>const tpl = '{{user.name}}';\n")
-                .replace('"Atomicitat"', '"List<String>"')
-                .replace('"Consistència d\'esquema"', '"List<Integer>"')
+                .replace('"Atomicity"', '"List<String>"')
+                .replace('"Schema Consistency checks"', '"List<Integer>"')
             )
             edge_slots = Path(tmp) / "edge.slots.txt"
             edge_slots.write_text(edge_raw, encoding="utf-8")
@@ -75,7 +117,7 @@ class MasterStudyGuidesTests(unittest.TestCase):
             rep = quiz_verifier.verify_html_file(edge_html, min_questions=12, strict_guide=True, min_per_level=4)
             self.assertTrue(rep["ok"], msg=f"Unexpected errors: {rep['errors']}")
 
-            # 2. Booleans rejected and 4/5 letter bias caught globally
+            # Booleans rejected and 4/5 letter bias caught with English AI Fix hints
             rep_bool = quiz_verifier.audit_quiz(
                 [{"id": "q1", "level": True, "q": "Q?", "options": ["A", "B"], "correct": True, "why": "x"}],
                 min_questions=1,
@@ -85,9 +127,11 @@ class MasterStudyGuidesTests(unittest.TestCase):
                 {"id": f"b{i}", "q": f"Q{i}", "options": ["Opt A1", "Opt B2", "Opt C3", "Opt D4"], "correct": 1 if i < 4 else 0}
                 for i in range(5)
             ]
-            self.assertFalse(quiz_verifier.audit_quiz(short_b, min_questions=5)["ok"])
+            rep_b = quiz_verifier.audit_quiz(short_b, min_questions=5)
+            self.assertFalse(rep_b["ok"])
+            self.assertTrue(any("AI Fix:" in e for e in rep_b["errors"]))
 
-            # 3. Atomic CLI build does not write invalid guide to disk
+            # Atomic CLI build does not leave broken file on disk
             failing = Path(tmp) / "fail.slots.txt"
             failing.write_text(
                 base_raw.replace(
@@ -104,6 +148,7 @@ class MasterStudyGuidesTests(unittest.TestCase):
             )
             self.assertNotEqual(res.returncode, 0)
             self.assertFalse(never_written.exists())
+            self.assertIn("AI Fix:", res.stdout + res.stderr)
 
 
 if __name__ == "__main__":

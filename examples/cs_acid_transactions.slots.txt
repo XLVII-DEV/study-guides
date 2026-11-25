@@ -1,0 +1,129 @@
+<!-- @slot meta -->
+{"lang": "en", "themePreset": "warm-serif", "title": "Study Guide · Database Transactions & ACID Guarantees", "topbarMeta": "Computer Science · Databases · Unit 3", "storageKey": "study_cs_acid_v1", "sidebarFoot": "Canonical Example · Master Professor Method"}
+
+<!-- @slot hero -->
+<div class="eyebrow">Computer Science · Databases <span class="src-tag">Source: Lecture 3 &amp; Lab 2</span></div>
+<h1>Transactions and ACID Guarantees</h1>
+<p>Concurrent queries and sudden crashes constantly threaten data integrity. A database transaction wraps multiple SQL statements into a single indivisible contract: either every change lands safely with <code>COMMIT</code>, or every partial trace vanishes with <code>ROLLBACK</code>.</p>
+<div class="summary-strip">
+  <div class="pill-box"><span class="pill-label">Core Contract</span><strong>All-or-Nothing (Atomicity)</strong></div>
+  <div class="pill-box"><span class="pill-label">Persist</span><code>COMMIT</code> flushes to WAL on disk</div>
+  <div class="pill-box"><span class="pill-label">Undo</span><code>ROLLBACK</code> reverts partial work</div>
+  <div class="pill-box"><span class="pill-label">Concurrency</span><strong>4 SQL Isolation Levels</strong></div>
+</div>
+
+<!-- @slot teoria -->
+<section class="card" id="t-lifecycle">
+  <div class="eyebrow">Block 1 · 01 <span class="src-tag">Source: Lecture 3 p.4</span></div>
+  <h2 id="h-lifecycle">Why Transactions Exist &amp; How They Execute</h2>
+  <p>Imagine transferring \$100 from Account A to Account B: without a transaction wrapper, a power cut between the debit and the credit destroys money in production.</p>
+  <figure class="diagram">
+    <svg viewBox="0 0 560 92" width="100%" role="img" aria-label="Transaction flow from BEGIN to COMMIT or ROLLBACK">
+      <rect x="4" y="20" width="130" height="50" rx="8" style="fill:var(--surface-low);stroke:var(--border-strong)" />
+      <text x="69" y="50" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--ink)">BEGIN TRAN</text>
+      <line x1="134" y1="45" x2="204" y2="45" style="stroke:var(--border-strong);stroke-width:1.5" />
+      <rect x="204" y="20" width="150" height="50" rx="8" style="fill:var(--surface);stroke:var(--accent);stroke-width:1.5" />
+      <text x="279" y="50" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent)">DEBIT A + CREDIT B</text>
+      <line x1="354" y1="45" x2="420" y2="45" style="stroke:var(--border-strong);stroke-width:1.5" />
+      <rect x="420" y="20" width="134" height="50" rx="8" style="fill:var(--surface);stroke:var(--ok);stroke-width:1.5" />
+      <text x="487" y="50" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--ok)">COMMIT / ROLLBACK</text>
+    </svg>
+    <figcaption>Every change stays uncommitted in memory/WAL until COMMIT succeeds.</figcaption>
+  </figure>
+  <h3>Worked Example · \$100 Transfer Step-by-Step</h3>
+  <ol class="step-trace">
+    <li><strong><code>BEGIN TRANSACTION</code></strong>: the engine assigns a transaction ID and acquires write locks on affected rows so no rival session reads half-finished balances.</li>
+    <li><strong><code>UPDATE accounts SET balance = balance - 100 WHERE id = 1</code></strong>: the before-image is recorded in the Write-Ahead Log (WAL) before modifying data pages.</li>
+    <li><strong><code>UPDATE accounts SET balance = balance + 100 WHERE id = 2</code></strong>: if a constraint or network error hits here, the engine replays the undo log backward.</li>
+    <li><strong><code>COMMIT</code></strong>: WAL records flush sequentially to disk (Durability), making both updates atomic and visible to everyone else.</li>
+  </ol>
+  <pre><code>BEGIN TRANSACTION;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+SAVEPOINT after_debit;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+-- ROLLBACK TO SAVEPOINT after_debit;  -- reverts only the credit if needed
+COMMIT;</code></pre>
+  <div class="compare-grid">
+    <div class="compare-box bad">
+      <strong>❌ Common Mistake</strong>
+      Leaving <code>BEGIN TRANSACTION</code> open inside application error handlers without calling <code>ROLLBACK</code> holds row locks indefinitely and stalls other users.
+    </div>
+    <div class="compare-box good">
+      <strong>✅ Right Way</strong>
+      Always wrap transactional blocks in <code>try { ... COMMIT; } catch { ROLLBACK; }</code> so locks release immediately on failure.
+    </div>
+  </div>
+  <details class="oral-check">
+    <summary>Exam Defense: Power is lost 1 ms after the client receives COMMIT confirmation. Are the rows safe?</summary>
+    <div class="oral-ans">Yes. Thanks to <strong>Durability</strong> and <strong>Write-Ahead Logging (WAL)</strong>, the engine guarantees log records hit non-volatile disk <em>before</em> reporting COMMIT success, allowing crash recovery to redo any un-flushed data pages on restart.</div>
+  </details>
+  <div class="key-takeaway"><strong>Key takeaway:</strong> Never confuse <em>Atomicity</em> (all-or-nothing execution) with <em>Durability</em> (surviving crashes once committed).</div>
+</section>
+
+<section class="card" id="t-isolation">
+  <div class="eyebrow">Block 1 · 02 <span class="src-tag">Source: Lecture 3 p.9 &amp; Lab 2</span></div>
+  <h2 id="h-isolation">Concurrency Anomalies &amp; Isolation Levels</h2>
+  <p>Running every transaction strictly one after another guarantees safety but kills throughput. SQL isolation levels let you tune the exact trade-off between concurrency speed and read anomalies.</p>
+  <table>
+    <thead><tr><th>Isolation Level</th><th>Dirty Read</th><th>Non-Repeatable Read</th><th>Phantom Read</th></tr></thead>
+    <tbody>
+      <tr><td><code>READ UNCOMMITTED</code></td><td>Possible</td><td>Possible</td><td>Possible</td></tr>
+      <tr><td><code>READ COMMITTED</code></td><td>Prevented</td><td>Possible</td><td>Possible</td></tr>
+      <tr><td><code>REPEATABLE READ</code></td><td>Prevented</td><td>Prevented</td><td>Possible (standard)</td></tr>
+      <tr><td><code>SERIALIZABLE</code></td><td>Prevented</td><td>Prevented</td><td>Prevented</td></tr>
+    </tbody>
+  </table>
+  <div class="callout trap"><strong>Exam trap:</strong> Students confuse <em>Non-Repeatable Read</em> (an existing row's column value changes between two reads) with <em>Phantom Read</em> (a brand-new row matching your <code>WHERE</code> clause suddenly appears on the second run).</div>
+  <div class="key-takeaway"><strong>Key takeaway:</strong> <code>READ COMMITTED</code> blocks dirty reads; only <code>SERIALIZABLE</code> stops all three anomalies under the ANSI SQL standard.</div>
+</section>
+
+<!-- @slot practica -->
+<p>Drag or tap chips to fill the gaps, pick from the dropdown, or type the SQL keyword and press <code>Enter</code>.</p>
+
+<div class="exercise" data-hint="BEGIN opens, ROLLBACK aborts, COMMIT finalizes" data-ok="Spot on: you nailed transactional control commands and isolation.">
+  <strong>1. Complete the transaction flow and isolation concept</strong>
+  <div class="chip-bank">
+    <span class="chip" data-val="BEGIN">BEGIN</span>
+    <span class="chip" data-val="COMMIT">COMMIT</span>
+    <span class="chip" data-val="ROLLBACK">ROLLBACK</span>
+  </div>
+  <p>Open the unit of work with <span class="slot" data-ans="BEGIN"></span>, undo on failure with <span class="slot" data-ans="ROLLBACK"></span>, and persist on success with <span class="slot" data-ans="COMMIT"></span>.</p>
+  <p>ACID property preventing dirty reads across concurrent sessions:
+    <select class="field" data-ans="isolation" aria-label="ACID property">
+      <option value="">—</option>
+      <option value="atomicity">Atomicity</option>
+      <option value="isolation">Isolation</option>
+      <option value="durability">Durability</option>
+    </select>
+  </p>
+  <p>SQL command to create a named mid-transaction checkpoint: <input class="field" type="text" data-ans="SAVEPOINT" aria-label="SQL checkpoint keyword" placeholder="SQL keyword..."></p>
+  <button class="btn primary check" type="button">Check</button>
+  <div class="feedback"></div>
+</div>
+
+<!-- @slot quiz -->
+[
+  {"id": "n1_q1", "level": 1, "src": "Lecture 3 p.2", "q": "Which ACID property guarantees that either every SQL statement in a transaction succeeds or none of them take effect?", "options": ["Atomicity", "Schema Consistency checks", "Concurrent Session Isolation", "Write-Ahead Log Durability"], "correct": 0, "why": "Atomicity treats the transaction as an indivisible unit. Consistency validates constraints before and after, not partial rollback behavior."},
+  {"id": "n1_q2", "level": 1, "src": "Lecture 3 p.3", "q": "Which SQL command reverses all pending changes since the start of an active transaction?", "options": ["COMMIT WORK immediately", "SAVEPOINT bookmarking", "ROLLBACK", "TRUNCATE TABLE cascade"], "correct": 2, "why": "ROLLBACK discards every uncommitted modification in the transaction. SAVEPOINT only marks an intermediate point rather than undoing changes by itself."},
+  {"id": "n1_q3", "level": 1, "src": "Lecture 3 p.4", "q": "Which ACID property ensures committed updates survive a sudden power failure?", "options": ["Statement Atomicity guarantees", "Durability", "Optimistic Read Isolation", "Foreign-Key Referential Integrity"], "correct": 1, "why": "Durability forces commit records onto non-volatile storage before confirming success. Isolation only governs visibility among active concurrent sessions."},
+  {"id": "n1_q4", "level": 1, "src": "Lecture 3 p.5", "q": "Why would you place a SAVEPOINT inside a long SQL transaction?", "options": ["To commit intermediate rows permanently to disk", "To disable foreign-key checks during bulk loading", "To release all row-level read locks early", "To roll back partway without losing prior work"], "correct": 3, "why": "SAVEPOINT enables partial rollbacks (ROLLBACK TO SAVEPOINT) within a single transaction. Nothing becomes permanent until the final COMMIT runs."},
+  {"id": "n2_q1", "level": 2, "src": "Lab 2", "q": "Session A reads an updated salary written by Session B before Session B finishes or commits. Which anomaly occurred?", "options": ["Range-query Phantom Read", "Dirty Read", "Circular Lock Deadlock", "Lost Update overwrite"], "correct": 1, "why": "Reading uncommitted data that might still be rolled back is a Dirty Read. Phantom reads happen when newly committed rows change a range result set."},
+  {"id": "n2_q2", "level": 2, "src": "Lab 2", "q": "A client connection drops unexpectedly mid-transaction without issuing COMMIT or ROLLBACK. What does the DBMS do?", "options": ["Commits pending writes after timeout", "Leaves partial writes permanently visible", "Automatically issues a ROLLBACK", "Rebuilds indexes on all locked tables"], "correct": 2, "why": "To uphold Atomicity and Consistency, any orphaned uncommitted transaction is automatically rolled back on disconnect or crash."},
+  {"id": "n2_q3", "level": 2, "src": "Lecture 3 p.9", "q": "Which ANSI SQL isolation level is the lowest one that permits Dirty Reads?", "options": ["READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SERIALIZABLE"], "correct": 0, "why": "READ UNCOMMITTED skips write-lock checks when reading data. READ COMMITTED is the minimum level that guarantees only committed versions are read."},
+  {"id": "n2_q4", "level": 2, "src": "Lab 2", "q": "What differentiates a Phantom Read from a Non-Repeatable Read during two identical SELECT queries?", "options": ["Existing row values change in place without changing count", "Only aggregate SUM() queries can ever observe a difference", "The DBMS automatically promotes locks to table level", "New rows appear or vanish in the range"], "correct": 3, "why": "A Phantom Read occurs when another session inserts or deletes rows matching your WHERE range. Non-Repeatable Reads modify an already-read row in place."},
+  {"id": "n3_q1", "level": 3, "src": "Lecture 3 p.11", "q": "Transaction T1 holds Row 1 and waits for Row 2, while T2 holds Row 2 and waits for Row 1. How does the engine resolve this?", "options": ["Waits indefinitely until an admin kills the process", "Commits both transactions ignoring lock conflicts", "Aborts one victim via ROLLBACK", "Downgrades both sessions to READ UNCOMMITTED"], "correct": 2, "why": "The deadlock detector breaks the cycle by rolling back the lower-cost victim transaction so the other finishes. Simply downgrading isolation would break ACID guarantees."},
+  {"id": "n3_q2", "level": 3, "src": "Lecture 3 p.10", "q": "How do engines guarantee Durability on COMMIT without flushing random 8 KB data pages immediately?", "options": ["Sequential Write-Ahead Logging (WAL)", "Caching dirty pages strictly in volatile RAM", "Maintaining clustered B+ tree secondary indexes", "Running periodic full table dumps every hour"], "correct": 0, "why": "Writing sequential WAL entries on COMMIT is orders of magnitude faster than random data-page I/O and lets crash recovery redo committed changes."},
+  {"id": "n3_q3", "level": 3, "src": "Lab 2", "q": "Under strict ANSI REPEATABLE READ, Session A reads rows WHERE age > 30 twice while Session B inserts and commits a 35-year-old user. What can happen?", "options": ["Session A sees an uncommitted dirty balance", "The engine deletes Session A's read snapshot", "Session A sees an existing row's age mutated", "A phantom row appears on the second read"], "correct": 3, "why": "Standard REPEATABLE READ locks existing rows it read, preventing dirty and non-repeatable reads, but does not always lock ranges against newly inserted phantoms."},
+  {"id": "n3_q4", "level": 3, "src": "Lecture 3 p.6", "q": "Inside one transaction you run INSERT A, SAVEPOINT p1, INSERT B, ROLLBACK TO SAVEPOINT p1, then COMMIT. What survives in the database?", "options": ["Both Row A and Row B are discarded completely", "Only Row A survives", "Both Row A and Row B survive permanently", "COMMIT fails because SAVEPOINT ends the block"], "correct": 1, "why": "Rolling back to p1 undoes only operations after p1 (Row B) while keeping prior work (Row A) active until COMMIT persists it."}
+]
+
+<!-- @slot xuleta -->
+<table>
+  <thead><tr><th>Letter</th><th>Property</th><th>Core Mechanism &amp; Exam Trap</th></tr></thead>
+  <tbody>
+    <tr><td><strong>A</strong></td><td>Atomicity</td><td>All-or-nothing (<code>COMMIT</code> / <code>ROLLBACK</code>). Never leave a transaction open in catch blocks.</td></tr>
+    <tr><td><strong>C</strong></td><td>Consistency</td><td>Every constraint, trigger, and invariant holds before start and after commit.</td></tr>
+    <tr><td><strong>I</strong></td><td>Isolation</td><td><code>READ COMMITTED</code> stops dirty reads; only <code>SERIALIZABLE</code> blocks phantoms in ANSI SQL.</td></tr>
+    <tr><td><strong>D</strong></td><td>Durability</td><td>Sequential <code>WAL</code> flush guarantees committed data survives power loss.</td></tr>
+  </tbody>
+</table>

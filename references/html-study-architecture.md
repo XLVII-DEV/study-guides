@@ -1,59 +1,69 @@
-# HTML Study Architecture Reference (`master-study-guides`)
+# HTML Study Architecture Reference (`study-guides`)
 
-Tota la capa visual i interactiva (Warm Academic Serif Bronze/Ocre, mode fosc, índex amb filtre `/`, botó *Copiar* a `<pre>`, motors del Bloc 2 i Bloc 3 amb persistència real i impressió A4 en 2 modes) viu a [`assets/template.html`](../assets/template.html). **No la reescriguis mai**: redacta només els 6 slots i compila amb `scripts/build_guide.py`.
+All styling, dark mode, 3 theme presets, searchable sidebar (`/`), 1-click code copy, timed exam mode, Anki `.tsv` exporter, and Block 2/3 engines live in [`assets/template.html`](../assets/template.html). **Never rewrite CSS or JS by hand** — author only the 6 slots and compile with `scripts/build_guide.py`.
 
 ---
 
-## 1. Paleta i Regles Visuals (SVG Dark-Mode Safe)
+## 1. Visual Presets & Dark-Mode-Safe SVG Rules
 
-| Token CSS | Mode Clar | Mode Fosc | Ús |
+Set `"themePreset"` inside `<!-- @slot meta -->`:
+
+| Preset | Light Feel | Dark Feel | Ideal Domain |
 | :--- | :--- | :--- | :--- |
-| `--bg` / `--surface` | `#fbf7ec` / `#fffdf7` | `#141310` / `#1d1b17` | Fons de pàgina i targetes |
-| `--surface-low` / `--surface-code` | `#f4eedb` / `#ede5cf` | `#26231d` / `#2c2821` | Índex, callouts i codi |
-| `--border` / `--border-strong` | `#dfd6bc` / `#8a7e63` | `#3a342a` / `#7e7360` | Contorns (`>= 3:1`) i caixes SVG |
-| `--ink` / `--ink-muted` | `#1f2421` / `#5a5549` | `#ede8dc` / `#aba392` | Text principal i secundari |
-| `--accent` / `--on-accent` | `#8c5214` / `#ffffff` | `#e5a94c` / `#1d1b17` | Bronze/Ocre i text sobre botó |
-| `--ok` / `--err` | `#146c53` / `#b42318` | `#4ade80` / `#fb7185` | Validació i trampes |
+| `warm-serif` *(default)* | Warm yellow paper `#fbf7ec` + Bronze `#8c5214` + Serif titles | Warm charcoal `#141310` + Ocre `#e5a94c` | General academic, reading-heavy courses |
+| `ink-editorial` | Ivory `#fcfaf7` + Burgundy `#881337` + Serif titles | Deep slate `#121214` + Rose `#fb7185` | Law, History, Biology/Medicine, Humanities |
+| `slate-tech` | Crisp white/slate `#f6f8fa` + Petrol `#0f5c73` + Geometric Sans | GitHub-dark `#0d1117` + Sky `#58a6ff` | Software Engineering, Cloud, Math, Physics |
 
-> **Regla SVG crítica**: dins `<svg>`, usa **sempre** variables CSS via `style="fill:var(--ink)"`, `style="stroke:var(--border-strong)"`, `style="fill:var(--accent)"`. **Prohibit** posar `fill="#000"`, `fill="#1f2421"` o `fill="black"` (queden invisibles en mode fosc i el verificador els rebutja).
+> **Critical SVG rule**: inside inline `<svg>`, **always** use CSS variables via `style="fill:var(--ink)"`, `style="stroke:var(--border-strong)"`, `style="fill:var(--accent)"`. **Never** use hardcoded `#000`, `#1f2421`, or `black` (invisible in dark mode and rejected by `--strict-guide`).
 
 ---
 
-## 2. Contracte dels 6 Slots i Components HTML
+## 2. Six-Slot Contract & Pedagogical Components
 
-Vegeu un fitxer complet i executable a [`examples/minimal_guide.slots.txt`](../examples/minimal_guide.slots.txt).
-
-1. **`<!-- @slot meta -->`** (JSON pur):
+1. **`<!-- @slot meta -->`** (pure JSON):
    ```json
-   {"lang": "ca", "title": "Guia Mestra · Tema", "topbarMeta": "Assignatura · Unitat", "storageKey": "study_tema_v1", "sidebarFoot": "Nota breu al peu"}
+   {
+     "lang": "en",
+     "themePreset": "warm-serif",
+     "title": "Study Guide · Topic",
+     "topbarMeta": "Subject · Unit",
+     "storageKey": "study_topic_v1",
+     "sidebarFoot": "Course · Level"
+   }
    ```
-   - Idiomes integrats (`UI_DEFAULTS`): `ca`, `es`, `en`, `fr`.
-   - Claus sobreescrivibles amb `"ui": {...}`: `index`, `closeIndex`, `skipToContent`, `filterPlaceholder`, `noMatches`, `dark`, `light`, `print`, `printFull`, `copy`, `copied`, `resetEx`, `start`, `theory`, `practice`, `quiz`, `sheet`, `practiceEyebrow`, `practiceTitle`, `quizEyebrow`, `quizTitle`, `sheetEyebrow`, `sheetTitle`, `level1`, `level2`, `level3`, `onlyWrong`, `reset`, `score`, `grade`, `globalScore`, `toReview`, `noWrong`, `empty`, `allCorrect`, `correctCount`, `hint`.
-2. **`<!-- @slot hero -->`** (HTML):
-   - `.eyebrow`, `<h1>`, paràgraf d'enfocament i `.summary-strip > .pill-box > .pill-label + strong`.
-3. **`<!-- @slot teoria -->`** (HTML — **Bloc 1**):
-   - Agrupa cada subtema dins `<section class="card" id="t-slug">` amb `<h2 id="h-slug">Títol</h2>` (`Bloc 1 · 01...`). `build_guide.py` enllaça l'índex a `#t-slug` perquè el ressaltat d'scroll cobreixi tota la targeta.
-   - **Components disponibles**: `.src-tag`, `.callout`, `.callout.trap`, `figure.diagram > svg + figcaption`, `<pre><code>` (rep botó *Copiar*) i `<details class="oral-check"><summary>...</summary><div class="oral-ans">...</div></details>`.
-4. **`<!-- @slot practica -->`** (HTML — **Bloc 2**):
-   - Cada exercici és `<div class="exercise" data-hint="pista curta" data-ok="Missatge d'èxit">` amb xips `.chip[data-val]` + `.slot[data-ans]`, `<input class="field" type="text" data-ans="opcio1|opcio2">` (valida amb `Enter` o clic) i `<select class="field" data-ans="valor">`, tancat amb `<button class="btn primary check" type="button">Comprovar</button><div class="feedback"></div>` (el botó *Reiniciar* s'injecta sol).
-5. **`<!-- @slot quiz -->`** (JSON pur, **sense** `<script>` — **Bloc 3**):
+   - Built-in `UI_DEFAULTS` languages: `en`, `es`, `ca`, `fr`, `de`, `pt`, `it`.
+   - Any label can be overridden via `"ui": {...}` (`index`, `closeIndex`, `skipToContent`, `filterPlaceholder`, `noMatches`, `dark`, `light`, `print`, `printFull`, `copy`, `copied`, `resetEx`, `start`, `theory`, `practice`, `quiz`, `sheet`, `practiceEyebrow`, `practiceTitle`, `quizEyebrow`, `quizTitle`, `sheetEyebrow`, `sheetTitle`, `level1`, `level2`, `level3`, `onlyWrong`, `reset`, `examMode`, `submitExam`, `timeLeft`, `exportAnki`, `score`, `grade`, `globalScore`, `toReview`, `noWrong`, `empty`, `allCorrect`, `correctCount`, `hint`).
+2. **`<!-- @slot hero -->`** (HTML): `.eyebrow`, `<h1>`, concise intro `<p>`, `.summary-strip > .pill-box > .pill-label + strong`.
+3. **`<!-- @slot teoria -->`** (HTML — **Block 1**):
+   - Wrap each subtopic in `<section class="card" id="t-slug">` with `<h2 id="h-slug">Title</h2>`.
+   - **Pedagogical components**:
+     - `<span class="src-tag">Source: Lecture 3</span>`: traceability badge.
+     - `<ol class="step-trace"><li>...</li></ol>`: numbered whiteboard step-by-step execution or derivation trace.
+     - `<div class="compare-grid"><div class="compare-box bad"><strong>❌ Common mistake</strong>...</div><div class="compare-box good"><strong>✅ Right way</strong>...</div></div>`: side-by-side mistake vs fix.
+     - `<div class="callout">` and `<div class="callout trap"><strong>Exam trap:</strong> ...</div>`.
+     - `<div class="key-takeaway"><strong>Key takeaway:</strong> ...</div>`: closing synthesis rule.
+     - `<details class="oral-check"><summary>Question...</summary><div class="oral-ans">Model answer...</div></details>`: active recall card (automatically included in `📥 Anki (.tsv)` export).
+     - `<figure class="diagram"><svg ...>...</svg><figcaption>...</figcaption></figure>` and `<pre><code>...</code></pre>`.
+4. **`<!-- @slot practica -->`** (HTML — **Block 2**):
+   - `<div class="exercise" data-hint="short hint" data-ok="Success message">` combining `.chip[data-val]` + `.slot[data-ans]`, `<input class="field" type="text" data-ans="a|b">`, and `<select class="field" data-ans="a"><option value="a">...</option></select>`, ending with `<button class="btn primary check" type="button">Check</button><div class="feedback"></div>`.
+5. **`<!-- @slot quiz -->`** (pure JSON, **no** `<script>` tags — **Block 3**):
    ```json
-   [{"id": "n1_q1", "level": 1, "src": "Tema 1 p.3", "q": "Enunciat...", "options": ["A", "B", "C", "D"], "correct": 2, "why": "..."}]
+   [{"id": "n1_q1", "level": 1, "src": "Unit 1", "q": "Question...", "options": ["A", "B", "C", "D"], "correct": 2, "why": "Rule proving C is correct, and why the primary distractor fails."}]
    ```
-6. **`<!-- @slot xuleta -->`** (HTML — **Bloc 4**):
-   - Taules i regles condensades en HTML pur. `🖨️ Xuleta A4` imprimeix només el resum + `#xuleta`; `📄 Guia completa` imprimeix tota la teoria + xuleta.
+   - Supports **Timed Exam Mode** (`1 min/question`, hides answers until submit, grades `/10`) and **Anki `.tsv` export**.
+6. **`<!-- @slot xuleta -->`** (HTML — **Block 4**): pure-HTML A4 tables and checklists.
 
-### IDs reservats de la plantilla (no els redeclarïs dins els slots)
-`mainContent`, `inici`, `teoria`, `practica`, `autoavaluacio`, `xuleta`, `sidebar`, `sidebarBackdrop`, `navFilter`, `navList`, `navEmpty`, `btnToggleIndex`, `btnCloseIndex`, `btnTheme`, `btnPrint`, `btnPrintFull`, `quizScore`, `quizHost`, `btnOnlyWrong`, `btnResetQuiz`, `guide-meta`, `quiz-data`.
+### Reserved Template IDs (do not reuse inside slots)
+`mainContent`, `inici`, `teoria`, `practica`, `autoavaluacio`, `xuleta`, `sidebar`, `sidebarBackdrop`, `navFilter`, `navList`, `navEmpty`, `btnToggleIndex`, `btnCloseIndex`, `btnTheme`, `btnPrint`, `btnPrintFull`, `examTimer`, `btnExamMode`, `btnSubmitExam`, `btnExportAnki`, `quizScore`, `quizHost`, `btnOnlyWrong`, `btnResetQuiz`, `guide-meta`, `quiz-data`.
 
 ---
 
-## 3. Regles Auditades per `build_guide.py` + `verify_html_quiz.py --strict-guide`
-1. **Estructura, Seguretat i Offline**: `<html lang>` vàlid, `#teoria/#practica/#autoavaluacio/#xuleta`, zero URLs `http(s)://` o `//` en atributs/CSS, zero `<iframe>/<embed>/on*=/javascript:/<script>` aliens, zero `innerHTML/eval`, i SVGs sense colors negres fixos (`#000`, `#1f2421`, `black`).
-2. **Resolubilitat Bloc 2 (Pràctica)**: cada `.slot[data-ans]` té un `.chip[data-val]` coincident al seu `.exercise`; cada `<select data-ans>` conté l'`<option>` guanyadora.
-3. **Equilibri Bloc 3 (Test, global i per nivell `1`, `2`, `3`)**:
-   - Tots 3 nivells tenen `>= min_per_level` preguntes (`max(1, min_questions // 3)` per defecte).
-   - Cap lletra supera `35%` (`>= 6` preguntes) o `50%` (`4–5` preguntes), sense ratxes `>= 3` iguals seguides.
-   - L'opció correcta no és la més llarga en `> 30%` global (`35%` per nivell) ni excedeix `1.20x` el màxim distractor / `1.35x` la mitjana quan fa `>= 30` chars.
-   - Cap booleà a `correct`/`level`, cap opció buida, duplicada ni comodí.
-4. **Escriptura atòmica**: `build_guide.py` valida sobre un fitxer temporal abans d'escriure el fitxer final.
+## 3. Automated Checks Enforced by `--strict-guide`
+1. **Offline & DOM/HTML Security**: `<html lang>` present, required 4 block containers `#teoria/#practica/#autoavaluacio/#xuleta`, zero external `http(s)://` or `//` URLs in attributes/CSS, zero `<iframe>/<embed>/on*=/javascript:/<script>` tags, zero `innerHTML/eval`, and dark-mode-safe SVGs.
+2. **Block 2 Solvability**: every `.slot[data-ans]` has a matching `.chip[data-val]` in its `.exercise`; every `<select data-ans>` has a matching `<option>`.
+3. **Block 3 Anti-Bias Audit (Global & Per-Level `1`, `2`, `3`)**:
+   - Enforces `--min-questions` and `--min-per-level` (`max(1, min_questions // 3)` default).
+   - Caps any single letter at `35%` (`>= 6` questions) or `50%` (`4–5` questions) and forbids `>= 3` consecutive identical answer positions.
+   - Caps longest-option correct hits at `30%` global / `35%` per level and flags length outliers (`>= 30` chars exceeding `1.20x max` or `1.35x mean`).
+   - Rejects booleans in `correct`/`level`, duplicate/empty options, and giveaway options (*"All of the above"*); warns if `"why"` is `< 35` chars.
+4. **Atomic Output**: `build_guide.py` validates on a temporary file before overwriting the destination.

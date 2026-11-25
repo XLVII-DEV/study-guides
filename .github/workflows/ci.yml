@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run unit tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Build, strictly verify, and check JS on all examples
+        run: |
+          for f in examples/*.slots.txt; do
+            echo "Verifying $f..."
+            python3 scripts/build_guide.py "$f" -o /tmp/ci_out.html --min-questions 12
+            python3 -c 'import re; h=open("/tmp/ci_out.html").read(); open("/tmp/ci_out.js","w").write(re.findall(r"<script>(.*?)</script>", h, re.S)[-1])'
+            node --check /tmp/ci_out.js
+          done

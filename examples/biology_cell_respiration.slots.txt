@@ -1,0 +1,106 @@
+<!-- @slot meta -->
+{"lang": "en", "themePreset": "ink-editorial", "title": "Study Guide · Cellular Respiration & ATP Yield", "topbarMeta": "Biology · Cellular Energetics", "storageKey": "study_bio_respiration_v1", "sidebarFoot": "University Intro · Ink Editorial Preset"}
+
+<!-- @slot hero -->
+<div class="eyebrow">Biology · Biochemistry <span class="src-tag">Source: Campbell Ch. 9</span></div>
+<h1>Cellular Respiration: How Cells Harvest ATP</h1>
+<p>Glucose stores energy in high-energy C–H bonds, but burning it all at once would cook the cell. Cellular respiration harvests electrons gradually via <code>NADH</code> and <code>FADH₂</code> across three stages to mint usable <code>ATP</code>.</p>
+<div class="summary-strip">
+  <div class="pill-box"><span class="pill-label">Overall Formula</span><code>C₆H₁₂O₆ + 6 O₂ → 6 CO₂ + 6 H₂O + ~32 ATP</code></div>
+  <div class="pill-box"><span class="pill-label">Final Electron Acceptor</span><strong>O₂</strong> (forming H₂O)</div>
+  <div class="pill-box"><span class="pill-label">Anaerobic Backup</span><strong>Fermentation regenerates NAD⁺</strong></div>
+</div>
+
+<!-- @slot teoria -->
+<section class="card" id="t-stages">
+  <div class="eyebrow">Block 1 · 01 <span class="src-tag">Source: Campbell Ch. 9 §1–3</span></div>
+  <h2 id="h-stages">Three Stages &amp; Where Each Runs</h2>
+  <p>Location matters on every biology exam: eukaryotic cells split glycolysis in the cytosol from mitochondrial oxidation so oxygen can drive the final proton gradient.</p>
+  <figure class="diagram">
+    <svg viewBox="0 0 620 100" width="100%" role="img" aria-label="Three stages of cellular respiration">
+      <rect x="4" y="18" width="176" height="64" rx="8" style="fill:var(--surface-low);stroke:var(--border-strong)" />
+      <text x="92" y="45" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--ink)">1. GLYCOLYSIS</text>
+      <text x="92" y="65" text-anchor="middle" font-size="11" style="fill:var(--ink-muted)">Cytosol · 2 ATP + 2 NADH</text>
+      <line x1="180" y1="50" x2="218" y2="50" style="stroke:var(--border-strong);stroke-width:1.5" />
+      <rect x="218" y="18" width="184" height="64" rx="8" style="fill:var(--surface);stroke:var(--accent);stroke-width:1.5" />
+      <text x="310" y="45" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent)">2. CITRIC ACID CYCLE</text>
+      <text x="310" y="65" text-anchor="middle" font-size="11" style="fill:var(--ink)">Mito. Matrix · 2 ATP + NADH/FADH₂</text>
+      <line x1="402" y1="50" x2="438" y2="50" style="stroke:var(--border-strong);stroke-width:1.5" />
+      <rect x="438" y="18" width="178" height="64" rx="8" style="fill:var(--surface);stroke:var(--ok);stroke-width:1.5" />
+      <text x="527" y="45" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--ok)">3. OXIDATIVE PHOS.</text>
+      <text x="527" y="65" text-anchor="middle" font-size="11" style="fill:var(--ink)">Inner Membrane · ~28 ATP</text>
+    </svg>
+    <figcaption>Only Glycolysis happens outside the mitochondrion and requires zero O₂.</figcaption>
+  </figure>
+  <ol class="step-trace">
+    <li><strong>Glycolysis (Cytosol)</strong>: invests 2 ATP to split 6-carbon glucose into two 3-carbon <strong>pyruvate</strong> molecules, netting 2 ATP and 2 NADH.</li>
+    <li><strong>Pyruvate Oxidation + Citric Acid Cycle (Matrix)</strong>: strips CO₂ to form Acetyl-CoA, generating 2 GTP/ATP, 6 NADH, and 2 FADH₂ per glucose.</li>
+    <li><strong>Oxidative Phosphorylation (Cristae)</strong>: electrons pump H⁺ into the intermembrane space; <strong>ATP synthase</strong> turns proton-motive force into ~28 ATP as <strong>O₂</strong> accepts electrons.</li>
+  </ol>
+  <div class="compare-grid">
+    <div class="compare-box bad">
+      <strong>❌ Common Mistake</strong>
+      Thinking fermentation stops because muscles run out of ATP directly. Without O₂, the Electron Transport Chain backs up and starves cells of empty <code>NAD⁺</code>.
+    </div>
+    <div class="compare-box good">
+      <strong>✅ Right Way</strong>
+      Fermentation exists solely to oxidize <code>NADH → NAD⁺</code> so glycolysis can keep yielding 2 substrate-level ATP without oxygen.
+    </div>
+  </div>
+  <details class="oral-check">
+    <summary>Active Recall: What happens to ATP yield and pH inside the intermembrane space if DNP pokes proton holes in the inner mitochondrial membrane?</summary>
+    <div class="oral-ans">Protons leak back into the matrix without passing through ATP synthase, collapsing the H⁺ gradient (pH rises toward matrix pH), stopping oxidative ATP synthesis while electron transport speeds up and releases energy as heat.</div>
+  </details>
+  <div class="key-takeaway"><strong>Key takeaway:</strong> Oxygen never enters glycolysis or the Krebs cycle directly—it simply clears the Electron Transport Chain so <code>NADH</code> can unload electrons.</div>
+</section>
+
+<!-- @slot practica -->
+<p>Match each stage to its cellular location and final electron acceptor.</p>
+
+<div class="exercise" data-hint="Cytosol -> Matrix -> Inner membrane; O2 accepts at the end" data-ok="Correct: every metabolic compartment and electron acceptor is dialed in.">
+  <strong>1. Cellular compartments &amp; aerobic respiration checkpoints</strong>
+  <div class="chip-bank">
+    <span class="chip" data-val="Cytosol">Cytosol</span>
+    <span class="chip" data-val="Mitochondrial matrix">Mitochondrial matrix</span>
+    <span class="chip" data-val="Inner membrane">Inner membrane</span>
+  </div>
+  <p>Glycolysis runs in the <span class="slot" data-ans="Cytosol"></span>, the Citric Acid Cycle runs in the <span class="slot" data-ans="Mitochondrial matrix"></span>, and the Electron Transport Chain sits in the <span class="slot" data-ans="Inner membrane"></span>.</p>
+  <p>Why do cells run lactic acid fermentation in hypoxia?
+    <select class="field" data-ans="nad" aria-label="Fermentation purpose">
+      <option value="">—</option>
+      <option value="krebs">To power the Krebs cycle without CO2</option>
+      <option value="nad">To regenerate NAD+ for glycolysis</option>
+      <option value="o2">To produce intracellular O2 gas</option>
+    </select>
+  </p>
+  <p>Chemical formula of the final electron acceptor at Complex IV: <input class="field" type="text" data-ans="O2" aria-label="Final electron acceptor" placeholder="Formula..."></p>
+  <button class="btn primary check" type="button">Check</button>
+  <div class="feedback"></div>
+</div>
+
+<!-- @slot quiz -->
+[
+  {"id": "bio1_q1", "level": 1, "src": "Ch. 9 §1", "q": "Where inside a eukaryotic cell does glycolysis take place?", "options": ["In the cytosol", "Inside the mitochondrial matrix", "Across the inner cristae folds", "Inside the intermembrane space"], "correct": 0, "why": "Glycolytic enzymes dissolve freely in the cytosol outside mitochondria. Only pyruvate oxidation and the citric acid cycle enter the matrix."},
+  {"id": "bio1_q2", "level": 1, "src": "Ch. 9 §2", "q": "What is the 3-carbon end product produced per glucose at the end of glycolysis?", "options": ["Two molecules of Acetyl-CoA", "Two molecules of Citric Acid", "Two molecules of Pyruvate", "Two molecules of Oxaloacetate"], "correct": 2, "why": "Splitting one 6-carbon glucose yields two 3-carbon pyruvate molecules. Acetyl-CoA has only 2 carbons and forms later inside the mitochondrion."},
+  {"id": "bio1_q3", "level": 1, "src": "Ch. 9 §3", "q": "Which molecule acts as the final electron acceptor at the end of the Electron Transport Chain?", "options": ["Carbon dioxide (CO2)", "Oxygen gas (O2)", "Oxidized NAD+ carrier", "Inorganic phosphate (Pi)"], "correct": 1, "why": "Oxygen sits at Complex IV with the highest electronegativity, binding electrons and H+ to form water. Carbon dioxide is a waste product released earlier."},
+  {"id": "bio1_q4", "level": 1, "src": "Ch. 9 §1", "q": "What net ATP gain does glycolysis directly yield per molecule of glucose?", "options": ["32 net ATP molecules", "28 net ATP molecules", "4 net ATP molecules", "2 net ATP molecules"], "correct": 3, "why": "Glycolysis consumes 2 ATP during the energy-investment phase and makes 4 gross ATP, leaving a net gain of 2 ATP."},
+  {"id": "bio2_q1", "level": 2, "src": "Ch. 9 §4", "q": "During intense sprinting without enough oxygen, why must muscle cells convert pyruvate into lactate?", "options": ["Lactate directly enters ATP synthase cleanly", "To oxidize NADH back into NAD+", "To pump H+ into the cytosol", "Lactate carries double the energy of glucose"], "correct": 1, "why": "Glycolysis stalls immediately without oxidized NAD+ to accept electrons. Reducing pyruvate regenerates NAD+ cleanly, even though lactate still wastes stored energy."},
+  {"id": "bio2_q2", "level": 2, "src": "Ch. 9 §3", "q": "Most of the ATP produced in aerobic respiration comes from which direct energy source?", "options": ["Substrate-level transfers in the cytosol", "Direct phosphorylation inside the Krebs cycle", "Chemiosmotic H+ proton-motive force", "Sunlight absorption by membrane cytochromes"], "correct": 2, "why": "ATP synthase uses the electrochemical H+ gradient across the inner mitochondrial membrane to generate ~28 of the ~32 ATP molecules."},
+  {"id": "bio2_q3", "level": 2, "src": "Ch. 9 §2", "q": "When oxygen drops to zero in a yeast culture, which stage continues running?", "options": ["Glycolysis", "Pyruvate oxidation to Acetyl-CoA", "The Citric Acid Cycle", "Oxidative Phosphorylation"], "correct": 0, "why": "Glycolysis needs no oxygen and pairs with alcohol fermentation to recycle NAD+. Both the Krebs cycle and electron transport halt without O2."},
+  {"id": "bio2_q4", "level": 2, "src": "Ch. 9 §2", "q": "How does substrate-level phosphorylation differ from oxidative phosphorylation?", "options": ["It requires an intact inner mitochondrial membrane", "It consumes molecular O2 on every turn", "It only functions inside photosynthetic chloroplasts", "An enzyme transfers phosphate directly to ADP"], "correct": 3, "why": "In glycolysis and the citric acid cycle, a kinase moves phosphate directly from a phosphorylated substrate to ADP without a proton gradient."},
+  {"id": "bio3_q1", "level": 3, "src": "Ch. 9 §3", "q": "If cyanide irreversibly blocks Complex IV (cytochrome c oxidase), what happens immediately to oxygen consumption and NADH levels?", "options": ["Oxygen consumption jumps while NADH drops fast", "ATP synthase speeds up to clear the backlog", "O2 consumption stops and NADH accumulates", "Glycolysis stops even though glucose stays abundant"], "correct": 2, "why": "Blocking Complex IV stops electron transfer to O2 and freezes the entire chain upstream, trapping carriers in their reduced NADH form."},
+  {"id": "bio3_q2", "level": 3, "src": "Ch. 9 §3", "q": "Compared to NADH, why does each FADH₂ molecule yield fewer ATP via oxidative phosphorylation?", "options": ["FADH2 skips Complex I proton pumping", "FADH2 donates electrons directly inside the cytosol", "FADH2 inhibits ATP synthase via negative feedback", "FADH2 carries only one high-energy electron pair"], "correct": 0, "why": "FADH2 enters at Complex II, which pumps zero protons, so fewer H+ ions cross the inner membrane than when NADH enters at Complex I."},
+  {"id": "bio3_q3", "level": 3, "src": "Ch. 9 §3", "q": "Suppose a poison makes the inner mitochondrial membrane freely permeable to H⁺ ions. What is the immediate effect on O₂ consumption and body heat?", "options": ["Both O2 use and heat fall to zero", "O2 consumption stops while ATP output doubles cleanly", "Electron transport freezes while glucose accumulates rapidly", "O2 consumption rises and energy releases as heat"], "correct": 3, "why": "Uncoupling removes back-pressure from the proton gradient, accelerating NADH oxidation and O2 reduction while dissipating gradient energy as heat instead of ATP."},
+  {"id": "bio3_q4", "level": 3, "src": "Ch. 9 §5", "q": "Phosphofructokinase (PFK) catalyzes the committed step of glycolysis. Which intracellular signal allosterically inhibits PFK?", "options": ["Elevated AMP concentration during low cellular energy", "High ATP and Citrate levels", "Rising cytosolic fructose-6-phosphate substrate concentration", "Decreased oxygen partial pressure inside skeletal muscle"], "correct": 1, "why": "High ATP and Citrate signal abundant energy reserves and slow glycolysis at PFK; conversely, high AMP activates PFK when ATP runs low."}
+]
+
+<!-- @slot xuleta -->
+<table>
+  <thead><tr><th>Stage</th><th>Location</th><th>Key Outputs / Exam Rule</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Glycolysis</strong></td><td>Cytosol</td><td>2 Pyruvate + 2 net ATP + 2 NADH. Works with or without O<sub>2</sub>.</td></tr>
+    <tr><td><strong>Krebs Cycle</strong></td><td>Mitochondrial matrix</td><td>Releases CO<sub>2</sub> waste; loads 6 NADH + 2 FADH<sub>2</sub> + 2 ATP.</td></tr>
+    <tr><td><strong>Ox. Phos.</strong></td><td>Inner membrane</td><td>~28 ATP via H<sup>+</sup> gradient; O<sub>2</sub> is final electron acceptor.</td></tr>
+    <tr><td><strong>Fermentation</strong></td><td>Cytosol (anaerobic)</td><td>Recycles NADH → NAD<sup>+</sup> only; yields zero extra ATP beyond glycolysis.</td></tr>
+  </tbody>
+</table>

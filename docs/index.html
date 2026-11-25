@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-preset="warm-serif">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Guide · Database Transactions &amp; ACID Guarantees</title>
+  <style>
+    :root {
+      --bg: #fbf7ec; --surface: #fffdf7; --surface-low: #f4eedb; --surface-code: #ede5cf;
+      --border: #dfd6bc; --border-strong: #8a7e63; --ink: #1f2421; --ink-muted: #5a5549;
+      --accent: #8c5214; --accent-soft: #f3e6cf; --on-accent: #ffffff;
+      --ok: #146c53; --ok-bg: #dcf3ea; --err: #b42318; --err-bg: #fee4e2;
+      --font-serif: "Times New Roman", Georgia, "Iowan Old Style", Times, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      --sidebar-w: 272px; --radius: 8px;
+    }
+    html[data-theme="dark"] {
+      --bg: #141310; --surface: #1d1b17; --surface-low: #26231d; --surface-code: #2c2821;
+      --border: #3a342a; --border-strong: #7e7360; --ink: #ede8dc; --ink-muted: #aba392;
+      --accent: #e5a94c; --accent-soft: #2e2414; --on-accent: #1d1b17;
+      --ok: #4ade80; --ok-bg: #132c1f; --err: #fb7185; --err-bg: #33161b;
+    }
+    html[data-preset="ink-editorial"] {
+      --bg: #fcfaf7; --surface: #ffffff; --surface-low: #f3efe8; --surface-code: #ebe5da;
+      --border: #dcd5c7; --border-strong: #857b68; --ink: #18181b; --ink-muted: #52525b;
+      --accent: #881337; --accent-soft: #ffe4e6; --on-accent: #ffffff;
+    }
+    html[data-preset="ink-editorial"][data-theme="dark"] {
+      --bg: #121214; --surface: #1a1a1e; --surface-low: #242429; --surface-code: #2a2a30;
+      --border: #383842; --border-strong: #71717a; --ink: #f4f4f5; --ink-muted: #a1a1aa;
+      --accent: #fb7185; --accent-soft: #3b131d; --on-accent: #18181b;
+    }
+    html[data-preset="slate-tech"] {
+      --bg: #f6f8fa; --surface: #ffffff; --surface-low: #eaeef2; --surface-code: #e2e8f0;
+      --border: #d0d7de; --border-strong: #6e7781; --ink: #1f2328; --ink-muted: #57606a;
+      --accent: #0f5c73; --accent-soft: #ddf4ff; --on-accent: #ffffff;
+      --font-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+    html[data-preset="slate-tech"][data-theme="dark"] {
+      --bg: #0d1117; --surface: #161b22; --surface-low: #21262d; --surface-code: #262c36;
+      --border: #30363d; --border-strong: #6e7681; --ink: #e6edf3; --ink-muted: #8b949e;
+      --accent: #58a6ff; --accent-soft: #13233a; --on-accent: #0d1117;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.65; transition: background-color 180ms ease, color 180ms ease; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .skip-link { position: absolute; left: -9999px; top: 8px; z-index: 60; padding: 8px 14px; background: var(--accent); color: var(--on-accent); border-radius: var(--radius); font-weight: 600; text-decoration: none; }
+    .skip-link:focus { left: 12px; }
+    h1, h2, h3, h4 { font-family: var(--font-serif); color: var(--ink); margin: 0 0 12px; line-height: 1.2; }
+    h1 { font-size: clamp(30px, 4vw, 42px); }
+    h2 { font-size: 26px; }
+    h3 { font-size: 20px; margin-top: 22px; }
+    p, li { max-width: 72ch; }
+    p { margin: 0 0 12px; }
+    ul, ol { padding-left: 22px; margin: 0 0 12px; }
+    a { color: var(--accent); }
+    code { font-family: var(--font-mono); font-size: 13px; background: var(--surface-code); padding: 2px 6px; border-radius: 5px; }
+    pre { font-family: var(--font-mono); font-size: 13px; background: var(--surface-code); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; overflow-x: auto; line-height: 1.5; margin: 0 0 14px; }
+    pre code { background: none; padding: 0; }
+    .pre-wrap { position: relative; margin: 0 0 14px; }
+    .pre-wrap pre { margin: 0; padding-right: 78px; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; height: 26px; padding: 0 9px; background: var(--surface); color: var(--ink-muted); border: 1px solid var(--border-strong); border-radius: 5px; font-family: var(--font-body); font-size: 11px; font-weight: 600; cursor: pointer; }
+    .copy-btn:hover { border-color: var(--accent); color: var(--ink); background: var(--accent-soft); }
+    .muted { color: var(--ink-muted); }
+    .src-tag { display: inline-block; font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; color: var(--ink-muted); background: var(--surface-low); border: 1px solid var(--border); border-radius: 4px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
+
+    .shell { display: flex; min-height: 100vh; }
+    .sidebar { width: var(--sidebar-w); flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--surface-low); border-right: 1px solid var(--border); padding: 18px 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; transition: margin-left 200ms ease, opacity 180ms ease; z-index: 40; }
+    body.sidebar-collapsed .sidebar { margin-left: calc(var(--sidebar-w) * -1); opacity: 0; pointer-events: none; visibility: hidden; }
+    .sidebar-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); z-index: 35; }
+    .sidebar-head { padding: 4px 8px 12px; border-bottom: 1px solid var(--border); font-family: var(--font-serif); font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .close-sidebar { display: none; height: 30px; padding: 0 9px; font-size: 13px; }
+    .nav-filter { width: 100%; height: 34px; margin-top: 10px; padding: 0 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--border-strong); border-radius: 6px; font-family: var(--font-body); font-size: 13px; }
+    .nav-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 2px; }
+    .nav-empty { font-size: 13px; margin: 10px 8px 0; }
+    .nav-link { display: block; padding: 8px 12px; border-radius: var(--radius); text-decoration: none; color: var(--ink-muted); font-size: 14px; font-weight: 500; border-left: 3px solid transparent; transition: background-color 150ms ease, color 150ms ease; }
+    .nav-link.sub { padding: 5px 12px 5px 24px; font-size: 13px; font-weight: 400; }
+    .nav-link:hover, .nav-link.active { background: var(--surface); color: var(--ink); border-left-color: var(--accent); }
+    .sidebar-foot { padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--ink-muted); }
+
+    .main-col { flex: 1; min-width: 0; }
+    .topbar { position: sticky; top: 0; z-index: 20; height: 58px; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .topbar-left, .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .topbar-meta { font-size: 13px; color: var(--ink-muted); font-weight: 500; }
+    .btn { height: 36px; padding: 0 12px; background: var(--surface); color: var(--ink); border: 1px solid var(--border-strong); border-radius: var(--radius); font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease; }
+    .btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .btn.primary:hover { filter: brightness(1.08); }
+    .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+
+    .content-wrap { max-width: 940px; margin: 0 auto; padding: 28px 24px 64px; display: grid; gap: 24px; }
+    .block { display: grid; gap: 24px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px 28px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .summary-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 16px; }
+    .pill-box { background: var(--surface-low); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; }
+    .pill-label { display: block; font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; border: 1px solid var(--border); }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+    th { background: var(--surface-low); font-family: var(--font-serif); font-size: 15px; }
+    .callout { border-left: 4px solid var(--accent); background: var(--surface-low); border-radius: var(--radius); padding: 14px 18px; margin: 14px 0; }
+    .callout.trap { border-left-color: var(--err); background: var(--err-bg); }
+    .callout.trap strong:first-child { color: var(--err); }
+    .compare-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 14px 0; }
+    .compare-box { border: 1px solid var(--border); border-left-width: 4px; border-radius: var(--radius); padding: 12px 14px; background: var(--bg); font-size: 14px; }
+    .compare-box strong:first-child { display: block; margin-bottom: 6px; }
+    .compare-box.bad { border-left-color: var(--err); }
+    .compare-box.bad strong:first-child { color: var(--err); }
+    .compare-box.good { border-left-color: var(--ok); }
+    .compare-box.good strong:first-child { color: var(--ok); }
+    ol.step-trace { counter-reset: step; list-style: none; padding-left: 0; margin: 14px 0; display: grid; gap: 10px; }
+    ol.step-trace > li { counter-increment: step; position: relative; padding: 10px 14px 10px 44px; background: var(--surface-low); border: 1px solid var(--border); border-radius: var(--radius); max-width: none; }
+    ol.step-trace > li::before { content: counter(step); position: absolute; left: 12px; top: 11px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+    .key-takeaway { margin-top: 16px; padding: 12px 16px; border: 1px solid var(--accent); background: var(--accent-soft); border-radius: var(--radius); font-size: 14px; }
+    details.oral-check { border: 1px solid var(--border-strong); border-left: 4px solid var(--accent); border-radius: var(--radius); background: var(--surface-low); padding: 12px 16px; margin: 12px 0; }
+    details.oral-check summary { font-weight: 600; cursor: pointer; color: var(--ink); }
+    details.oral-check .oral-ans { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-strong); font-size: 14px; }
+    figure.diagram { margin: 14px 0; }
+    figure.diagram figcaption { font-size: 12px; color: var(--ink-muted); margin-top: 6px; }
+    svg text { font-family: var(--font-body); }
+
+    .exercise { border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-top: 14px; background: var(--bg); }
+    .exercise > strong:first-child { display: block; margin-bottom: 6px; }
+    .chip-bank { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .chip { padding: 6px 12px; background: var(--surface-low); border: 1px solid var(--border-strong); border-radius: var(--radius); font-family: var(--font-mono); font-size: 13px; cursor: grab; user-select: none; }
+    .chip.used { opacity: 0.78; border-style: dashed; }
+    .chip:hover, .chip.selected { opacity: 1; background: var(--accent); border-style: solid; border-color: var(--accent); color: var(--on-accent); }
+    .slot { display: inline-flex; align-items: center; min-width: 130px; height: 32px; padding: 0 10px; border: 1.5px dashed var(--accent); border-radius: 6px; background: var(--surface); font-family: var(--font-mono); font-size: 13px; vertical-align: middle; cursor: pointer; }
+    .slot.over { background: var(--accent-soft); }
+    .field { height: 36px; min-width: min(200px, 100%); max-width: 100%; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 6px; font-family: var(--font-mono); font-size: 14px; color: var(--ink); padding: 0 10px; }
+    .ex-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .ok { border-style: solid !important; border-color: var(--ok) !important; background: var(--ok-bg) !important; color: var(--ok) !important; }
+    .err { border-style: solid !important; border-color: var(--err) !important; background: var(--err-bg) !important; color: var(--err) !important; }
+    .feedback { margin-top: 10px; font-size: 13px; font-weight: 600; min-height: 20px; }
+    .feedback.good { color: var(--ok); }
+    .feedback.bad { color: var(--err); }
+
+    .quiz-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0 14px; }
+    .level-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+    .level-tab { padding: 8px 15px; background: var(--surface-low); border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-weight: 600; color: var(--ink-muted); cursor: pointer; }
+    .level-tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .quiz-score { font-size: 13px; font-weight: 600; color: var(--ink-muted); margin-bottom: 12px; }
+    .quiz-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .quiz-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); padding: 16px; margin-bottom: 14px; }
+    .quiz-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .quiz-q { font-weight: 600; font-size: 15px; }
+    .quiz-opts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .quiz-opt { padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; text-align: left; font-family: var(--font-body); font-size: 14px; color: var(--ink); cursor: pointer; }
+    .quiz-opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+    .quiz-opt.picked { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+    .quiz-opt:disabled { cursor: default; }
+    .quiz-why { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--surface); font-size: 13px; color: var(--ink-muted); }
+
+    @media (max-width: 860px) {
+      .sidebar { position: fixed; left: 0; }
+      .close-sidebar { display: inline-flex; align-items: center; }
+      .quiz-opts, .compare-grid { grid-template-columns: 1fr; }
+      .topbar-meta, #btnPrintFull { display: none; }
+      .card { padding: 20px; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+    @media print {
+      :root, html[data-theme="dark"], html[data-preset] {
+        --bg: #ffffff; --surface: #ffffff; --surface-low: #f4f4f4; --surface-code: #f4f4f4;
+        --border: #cccccc; --border-strong: #888888; --ink: #111111; --ink-muted: #444444;
+        --accent: #8c5214; --on-accent: #ffffff; --ok: #146c53; --err: #b42318;
+      }
+      .sidebar, .sidebar-backdrop, .topbar, .skip-link, #practica, #autoavaluacio, .copy-btn, .no-print { display: none !important; }
+      body:not(.print-full) #teoria, body:not(.print-full) #inici > p { display: none !important; }
+      html, body { background: #ffffff !important; color: #111111 !important; font-size: 13px; line-height: 1.45; }
+      .content-wrap { max-width: 100%; padding: 0; gap: 10px; }
+      .card { border: 1px solid #cccccc !important; background: #ffffff !important; padding: 12px 14px; }
+      tr, .callout, .compare-box, ol.step-trace > li, .key-takeaway, figure.diagram, .quiz-card { break-inside: avoid; }
+      h1 { font-size: 22px; margin-bottom: 6px; }
+      h2 { font-size: 18px; margin-bottom: 6px; }
+      th, td { padding: 6px 9px; font-size: 12px; }
+      pre, code { background: #f4f4f4 !important; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#mainContent">Skip to content</a>
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Contents">
+    <div>
+      <div class="sidebar-head">
+        <span>Contents</span>
+        <button class="btn close-sidebar" type="button" id="btnCloseIndex" aria-label="Close contents">✕</button>
+      </div>
+      <input class="nav-filter" id="navFilter" type="search" placeholder="Filter sections (/)..." aria-label="Filter sections (/)...">
+      <nav aria-label="Contents">
+        <ul class="nav-list" id="navList">
+        <li><a class="nav-link" href="#inici">Start</a></li>
+        <li><a class="nav-link" href="#teoria">Teacher&#x27;s explanation</a></li>
+        <li><a class="nav-link sub" href="#t-lifecycle">Why Transactions Exist &amp; How They Execute</a></li>
+        <li><a class="nav-link sub" href="#t-isolation">Concurrency Anomalies &amp; Isolation Levels</a></li>
+        <li><a class="nav-link" href="#practica">Fill-in practice</a></li>
+        <li><a class="nav-link" href="#autoavaluacio">Self-assessment I · II · III</a></li>
+        <li><a class="nav-link" href="#xuleta">A4 cheat-sheet</a></li>
+        </ul>
+      </nav>
+      <p class="muted nav-empty" id="navEmpty" hidden>No matches.</p>
+    </div>
+    <div class="sidebar-foot">Canonical Example · Master Professor Method</div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+  <div class="main-col">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="btn" type="button" id="btnToggleIndex" aria-expanded="true" aria-controls="sidebar">☰ Contents</button>
+        <span class="topbar-meta">Computer Science · Databases · Unit 3</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn" type="button" id="btnTheme" aria-pressed="false">🌙 Dark mode</button>
+        <button class="btn" type="button" id="btnPrint">🖨️ A4 cheat-sheet</button>
+        <button class="btn" type="button" id="btnPrintFull">📄 Full guide</button>
+      </div>
+    </header>
+
+    <main class="content-wrap" id="mainContent">
+      <section class="card" id="inici">
+<!-- @slot-begin:hero -->
+<div class="eyebrow">Computer Science · Databases <span class="src-tag">Source: Lecture 3 &amp; Lab 2</span></div>
+<h1>Transactions and ACID Guarantees</h1>
+<p>Concurrent queries and sudden crashes constantly threaten data integrity. A database transaction wraps multiple SQL statements into a single indivisible contract: either every change lands safely with <code>COMMIT</code>, or every partial trace vanishes with <code>ROLLBACK</code>.</p>
+<div class="summary-strip">
+  <div class="pill-box"><span class="pill-label">Core Contract</span><strong>All-or-Nothing (Atomicity)</strong></div>
+  <div class="pill-box"><span class="pill-label">Persist</span><code>COMMIT</code> flushes to WAL on disk</div>
+  <div class="pill-box"><span class="pill-label">Undo</span><code>ROLLBACK</code> reverts partial work</div>
+  <div class="pill-box"><span class="pill-label">Concurrency</span><strong>4 SQL Isolation Levels</strong></div>
+</div>
+<!-- @slot-end:hero -->
+      </section>
+
+      <div class="block" id="teoria">
+<!-- @slot-begin:teoria -->
+<section class="card" id="t-lifecycle">
+  <div class="eyebrow">Block 1 · 01 <span class="src-tag">Source: Lecture 3 p.4</span></div>
+  <h2 id="h-lifecycle">Why Transactions Exist &amp; How They Execute</h2>
+  <p>Imagine transferring \$100 from Account A to Account B: without a transaction wrapper, a power cut between the debit and the credit destroys money in production.</p>
+  <figure class="diagram">
+    <svg viewBox="0 0 560 92" width="100%" role="img" aria-label="Transaction flow from BEGIN to COMMIT or ROLLBACK">
+      <rect x="4" y="20" width="130" height="50" rx="8" style="fill:var(--surface-low);stroke:var(--border-strong)" />
+      <text x="69" y="50" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--ink)">BEGIN TRAN</text>
+      <line x1="134" y1="45" x2="204" y2="45" style="stroke:var(--border-strong);stroke-width:1.5" />
+      <rect x="204" y="20" width="150" height="50" rx="8" style="fill:var(--surface);stroke:var(--accent);stroke-width:1.5" />
+      <text x="279" y="50" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent)">DEBIT A + CREDIT B</text>
+      <line x1="354" y1="45" x2="420" y2="45" style="stroke:var(--border-strong);stroke-width:1.5" />
+      <rect x="420" y="20" width="134" height="50" rx="8" style="fill:var(--surface);stroke:var(--ok);stroke-width:1.5" />
+      <text x="487" y="50" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--ok)">COMMIT / ROLLBACK</text>
+    </svg>
+    <figcaption>Every change stays uncommitted in memory/WAL until COMMIT succeeds.</figcaption>
+  </figure>
+  <h3>Worked Example · \$100 Transfer Step-by-Step</h3>
+  <ol class="step-trace">
+    <li><strong><code>BEGIN TRANSACTION</code></strong>: the engine assigns a transaction ID and acquires write locks on affected rows so no rival session reads half-finished balances.</li>
+    <li><strong><code>UPDATE accounts SET balance = balance - 100 WHERE id = 1</code></strong>: the before-image is recorded in the Write-Ahead Log (WAL) before modifying data pages.</li>
+    <li><strong><code>UPDATE accounts SET balance = balance + 100 WHERE id = 2</code></strong>: if a constraint or network error hits here, the engine replays the undo log backward.</li>
+    <li><strong><code>COMMIT</code></strong>: WAL records flush sequentially to disk (Durability), making both updates atomic and visible to everyone else.</li>
+  </ol>
+  <pre><code>BEGIN TRANSACTION;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+SAVEPOINT after_debit;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+-- ROLLBACK TO SAVEPOINT after_debit;  -- reverts only the credit if needed
+COMMIT;</code></pre>
+  <div class="compare-grid">
+    <div class="compare-box bad">
+      <strong>❌ Common Mistake</strong>
+      Leaving <code>BEGIN TRANSACTION</code> open inside application error handlers without calling <code>ROLLBACK</code> holds row locks indefinitely and stalls other users.
+    </div>
+    <div class="compare-box good">
+      <strong>✅ Right Way</strong>
+      Always wrap transactional blocks in <code>try { ... COMMIT; } catch { ROLLBACK; }</code> so locks release immediately on failure.
+    </div>
+  </div>
+  <details class="oral-check">
+    <summary>Exam Defense: Power is lost 1 ms after the client receives COMMIT confirmation. Are the rows safe?</summary>
+    <div class="oral-ans">Yes. Thanks to <strong>Durability</strong> and <strong>Write-Ahead Logging (WAL)</strong>, the engine guarantees log records hit non-volatile disk <em>before</em> reporting COMMIT success, allowing crash recovery to redo any un-flushed data pages on restart.</div>
+  </details>
+  <div class="key-takeaway"><strong>Key takeaway:</strong> Never confuse <em>Atomicity</em> (all-or-nothing execution) with <em>Durability</em> (surviving crashes once committed).</div>
+</section>
+
+<section class="card" id="t-isolation">
+  <div class="eyebrow">Block 1 · 02 <span class="src-tag">Source: Lecture 3 p.9 &amp; Lab 2</span></div>
+  <h2 id="h-isolation">Concurrency Anomalies &amp; Isolation Levels</h2>
+  <p>Running every transaction strictly one after another guarantees safety but kills throughput. SQL isolation levels let you tune the exact trade-off between concurrency speed and read anomalies.</p>
+  <table>
+    <thead><tr><th>Isolation Level</th><th>Dirty Read</th><th>Non-Repeatable Read</th><th>Phantom Read</th></tr></thead>
+    <tbody>
+      <tr><td><code>READ UNCOMMITTED</code></td><td>Possible</td><td>Possible</td><td>Possible</td></tr>
+      <tr><td><code>READ COMMITTED</code></td><td>Prevented</td><td>Possible</td><td>Possible</td></tr>
+      <tr><td><code>REPEATABLE READ</code></td><td>Prevented</td><td>Prevented</td><td>Possible (standard)</td></tr>
+      <tr><td><code>SERIALIZABLE</code></td><td>Prevented</td><td>Prevented</td><td>Prevented</td></tr>
+    </tbody>
+  </table>
+  <div class="callout trap"><strong>Exam trap:</strong> Students confuse <em>Non-Repeatable Read</em> (an existing row's column value changes between two reads) with <em>Phantom Read</em> (a brand-new row matching your <code>WHERE</code> clause suddenly appears on the second run).</div>
+  <div class="key-takeaway"><strong>Key takeaway:</strong> <code>READ COMMITTED</code> blocks dirty reads; only <code>SERIALIZABLE</code> stops all three anomalies under the ANSI SQL standard.</div>
+</section>
+<!-- @slot-end:teoria -->
+      </div>
+
+      <section class="card" id="practica">
+        <div class="eyebrow">Block 2 · Practice</div>
+        <h2>Fill-in activities</h2>
+<!-- @slot-begin:practica -->
+<p>Drag or tap chips to fill the gaps, pick from the dropdown, or type the SQL keyword and press <code>Enter</code>.</p>
+
+<div class="exercise" data-hint="BEGIN opens, ROLLBACK aborts, COMMIT finalizes" data-ok="Spot on: you nailed transactional control commands and isolation.">
+  <strong>1. Complete the transaction flow and isolation concept</strong>
+  <div class="chip-bank">
+    <span class="chip" data-val="BEGIN">BEGIN</span>
+    <span class="chip" data-val="COMMIT">COMMIT</span>
+    <span class="chip" data-val="ROLLBACK">ROLLBACK</span>
+  </div>
+  <p>Open the unit of work with <span class="slot" data-ans="BEGIN"></span>, undo on failure with <span class="slot" data-ans="ROLLBACK"></span>, and persist on success with <span class="slot" data-ans="COMMIT"></span>.</p>
+  <p>ACID property preventing dirty reads across concurrent sessions:
+    <select class="field" data-ans="isolation" aria-label="ACID property">
+      <option value="">—</option>
+      <option value="atomicity">Atomicity</option>
+      <option value="isolation">Isolation</option>
+      <option value="durability">Durability</option>
+    </select>
+  </p>
+  <p>SQL command to create a named mid-transaction checkpoint: <input class="field" type="text" data-ans="SAVEPOINT" aria-label="SQL checkpoint keyword" placeholder="SQL keyword..."></p>
+  <button class="btn primary check" type="button">Check</button>
+  <div class="feedback"></div>
+</div>
+<!-- @slot-end:practica -->
+      </section>
+
+      <section class="card" id="autoavaluacio">
+        <div class="eyebrow">Block 3 · Progressive self-assessment</div>
+        <h2>3-level quiz</h2>
+        <div class="quiz-toolbar">
+          <div class="level-tabs" role="tablist">
+            <button class="level-tab" type="button" role="tab" data-lvl="1" aria-selected="true">Level I · Foundations</button>
+            <button class="level-tab" type="button" role="tab" data-lvl="2" aria-selected="false">Level II · Application</button>
+            <button class="level-tab" type="button" role="tab" data-lvl="3" aria-selected="false">Level III · Mastery</button>
+          </div>
+          <div class="quiz-actions">
+            <span class="quiz-score" id="examTimer" style="margin:0;" hidden></span>
+            <button class="btn" type="button" id="btnExamMode" aria-pressed="false">⏱️ Exam mode</button>
+            <button class="btn primary" type="button" id="btnSubmitExam" hidden>Submit exam</button>
+            <button class="btn" type="button" id="btnExportAnki">📥 Anki (.tsv)</button>
+            <button class="btn" type="button" id="btnOnlyWrong" aria-pressed="false">Review mistakes only</button>
+            <button class="btn" type="button" id="btnResetQuiz">Reset level</button>
+          </div>
+        </div>
+        <div class="quiz-score" id="quizScore" aria-live="polite"></div>
+        <div id="quizHost"></div>
+      </section>
+
+      <section class="card" id="xuleta">
+        <div class="eyebrow">Block 4 · A4 print</div>
+        <h2>Teacher&#x27;s cheat-sheet</h2>
+<!-- @slot-begin:xuleta -->
+<table>
+  <thead><tr><th>Letter</th><th>Property</th><th>Core Mechanism &amp; Exam Trap</th></tr></thead>
+  <tbody>
+    <tr><td><strong>A</strong></td><td>Atomicity</td><td>All-or-nothing (<code>COMMIT</code> / <code>ROLLBACK</code>). Never leave a transaction open in catch blocks.</td></tr>
+    <tr><td><strong>C</strong></td><td>Consistency</td><td>Every constraint, trigger, and invariant holds before start and after commit.</td></tr>
+    <tr><td><strong>I</strong></td><td>Isolation</td><td><code>READ COMMITTED</code> stops dirty reads; only <code>SERIALIZABLE</code> blocks phantoms in ANSI SQL.</td></tr>
+    <tr><td><strong>D</strong></td><td>Durability</td><td>Sequential <code>WAL</code> flush guarantees committed data survives power loss.</td></tr>
+  </tbody>
+</table>
+<!-- @slot-end:xuleta -->
+      </section>
+    </main>
+  </div>
+</div>
+
+<script type="application/json" id="guide-meta">{"lang": "en", "themePreset": "warm-serif", "title": "Study Guide · Database Transactions & ACID Guarantees", "topbarMeta": "Computer Science · Databases · Unit 3", "storageKey": "study_cs_acid_v1", "sidebarFoot": "Canonical Example · Master Professor Method", "ui": {"index": "Contents", "closeIndex": "Close contents", "skipToContent": "Skip to content", "filterPlaceholder": "Filter sections (/)...", "noMatches": "No matches.", "dark": "Dark mode", "light": "Light mode", "print": "A4 cheat-sheet", "printFull": "Full guide", "copy": "Copy", "copied": "Copied ✓", "resetEx": "Reset", "start": "Start", "theory": "Teacher's explanation", "practice": "Fill-in practice", "quiz": "Self-assessment I · II · III", "sheet": "A4 cheat-sheet", "practiceEyebrow": "Block 2 · Practice", "practiceTitle": "Fill-in activities", "quizEyebrow": "Block 3 · Progressive self-assessment", "quizTitle": "3-level quiz", "sheetEyebrow": "Block 4 · A4 print", "sheetTitle": "Teacher's cheat-sheet", "level1": "Level I · Foundations", "level2": "Level II · Application", "level3": "Level III · Mastery", "onlyWrong": "Review mistakes only", "reset": "Reset level", "examMode": "Exam mode", "submitExam": "Submit exam", "timeLeft": "Time left", "exportAnki": "Anki (.tsv)", "score": "Level", "grade": "Score", "globalScore": "Total", "toReview": "To review", "noWrong": "No pending mistakes in this level.", "empty": "No questions in this level.", "allCorrect": "All correct.", "correctCount": "correct", "hint": "Hint"}}</script>
+<script type="application/json" id="quiz-data">[
+  {
+    "id": "n1_q1",
+    "level": 1,
+    "src": "Lecture 3 p.2",
+    "q": "Which ACID property guarantees that either every SQL statement in a transaction succeeds or none of them take effect?",
+    "options": [
+      "Atomicity",
+      "Schema Consistency checks",
+      "Concurrent Session Isolation",
+      "Write-Ahead Log Durability"
+    ],
+    "correct": 0,
+    "why": "Atomicity treats the transaction as an indivisible unit. Consistency validates constraints before and after, not partial rollback behavior."
+  },
+  {
+    "id": "n1_q2",
+    "level": 1,
+    "src": "Lecture 3 p.3",
+    "q": "Which SQL command reverses all pending changes since the start of an active transaction?",
+    "options": [
+      "COMMIT WORK immediately",
+      "SAVEPOINT bookmarking",
+      "ROLLBACK",
+      "TRUNCATE TABLE cascade"
+    ],
+    "correct": 2,
+    "why": "ROLLBACK discards every uncommitted modification in the transaction. SAVEPOINT only marks an intermediate point rather than undoing changes by itself."
+  },
+  {
+    "id": "n1_q3",
+    "level": 1,
+    "src": "Lecture 3 p.4",
+    "q": "Which ACID property ensures committed updates survive a sudden power failure?",
+    "options": [
+      "Statement Atomicity guarantees",
+      "Durability",
+      "Optimistic Read Isolation",
+      "Foreign-Key Referential Integrity"
+    ],
+    "correct": 1,
+    "why": "Durability forces commit records onto non-volatile storage before confirming success. Isolation only governs visibility among active concurrent sessions."
+  },
+  {
+    "id": "n1_q4",
+    "level": 1,
+    "src": "Lecture 3 p.5",
+    "q": "Why would you place a SAVEPOINT inside a long SQL transaction?",
+    "options": [
+      "To commit intermediate rows permanently to disk",
+      "To disable foreign-key checks during bulk loading",
+      "To release all row-level read locks early",
+      "To roll back partway without losing prior work"
+    ],
+    "correct": 3,
+    "why": "SAVEPOINT enables partial rollbacks (ROLLBACK TO SAVEPOINT) within a single transaction. Nothing becomes permanent until the final COMMIT runs."
+  },
+  {
+    "id": "n2_q1",
+    "level": 2,
+    "src": "Lab 2",
+    "q": "Session A reads an updated salary written by Session B before Session B finishes or commits. Which anomaly occurred?",
+    "options": [
+      "Range-query Phantom Read",
+      "Dirty Read",
+      "Circular Lock Deadlock",
+      "Lost Update overwrite"
+    ],
+    "correct": 1,
+    "why": "Reading uncommitted data that might still be rolled back is a Dirty Read. Phantom reads happen when newly committed rows change a range result set."
+  },
+  {
+    "id": "n2_q2",
+    "level": 2,
+    "src": "Lab 2",
+    "q": "A client connection drops unexpectedly mid-transaction without issuing COMMIT or ROLLBACK. What does the DBMS do?",
+    "options": [
+      "Commits pending writes after timeout",
+      "Leaves partial writes permanently visible",
+      "Automatically issues a ROLLBACK",
+      "Rebuilds indexes on all locked tables"
+    ],
+    "correct": 2,
+    "why": "To uphold Atomicity and Consistency, any orphaned uncommitted transaction is automatically rolled back on disconnect or crash."
+  },
+  {
+    "id": "n2_q3",
+    "level": 2,
+    "src": "Lecture 3 p.9",
+    "q": "Which ANSI SQL isolation level is the lowest one that permits Dirty Reads?",
+    "options": [
+      "READ UNCOMMITTED",
+      "READ COMMITTED",
+      "REPEATABLE READ",
+      "SERIALIZABLE"
+    ],
+    "correct": 0,
+    "why": "READ UNCOMMITTED skips write-lock checks when reading data. READ COMMITTED is the minimum level that guarantees only committed versions are read."
+  },
+  {
+    "id": "n2_q4",
+    "level": 2,
+    "src": "Lab 2",
+    "q": "What differentiates a Phantom Read from a Non-Repeatable Read during two identical SELECT queries?",
+    "options": [
+      "Existing row values change in place without changing count",
+      "Only aggregate SUM() queries can ever observe a difference",
+      "The DBMS automatically promotes locks to table level",
+      "New rows appear or vanish in the range"
+    ],
+    "correct": 3,
+    "why": "A Phantom Read occurs when another session inserts or deletes rows matching your WHERE range. Non-Repeatable Reads modify an already-read row in place."
+  },
+  {
+    "id": "n3_q1",
+    "level": 3,
+    "src": "Lecture 3 p.11",
+    "q": "Transaction T1 holds Row 1 and waits for Row 2, while T2 holds Row 2 and waits for Row 1. How does the engine resolve this?",
+    "options": [
+      "Waits indefinitely until an admin kills the process",
+      "Commits both transactions ignoring lock conflicts",
+      "Aborts one victim via ROLLBACK",
+      "Downgrades both sessions to READ UNCOMMITTED"
+    ],
+    "correct": 2,
+    "why": "The deadlock detector breaks the cycle by rolling back the lower-cost victim transaction so the other finishes. Simply downgrading isolation would break ACID guarantees."
+  },
+  {
+    "id": "n3_q2",
+    "level": 3,
+    "src": "Lecture 3 p.10",
+    "q": "How do engines guarantee Durability on COMMIT without flushing random 8 KB data pages immediately?",
+    "options": [
+      "Sequential Write-Ahead Logging (WAL)",
+      "Caching dirty pages strictly in volatile RAM",
+      "Maintaining clustered B+ tree secondary indexes",
+      "Running periodic full table dumps every hour"
+    ],
+    "correct": 0,
+    "why": "Writing sequential WAL entries on COMMIT is orders of magnitude faster than random data-page I/O and lets crash recovery redo committed changes."
+  },
+  {
+    "id": "n3_q3",
+    "level": 3,
+    "src": "Lab 2",
+    "q": "Under strict ANSI REPEATABLE READ, Session A reads rows WHERE age > 30 twice while Session B inserts and commits a 35-year-old user. What can happen?",
+    "options": [
+      "Session A sees an uncommitted dirty balance",
+      "The engine deletes Session A's read snapshot",
+      "Session A sees an existing row's age mutated",
+      "A phantom row appears on the second read"
+    ],
+    "correct": 3,
+    "why": "Standard REPEATABLE READ locks existing rows it read, preventing dirty and non-repeatable reads, but does not always lock ranges against newly inserted phantoms."
+  },
+  {
+    "id": "n3_q4",
+    "level": 3,
+    "src": "Lecture 3 p.6",
+    "q": "Inside one transaction you run INSERT A, SAVEPOINT p1, INSERT B, ROLLBACK TO SAVEPOINT p1, then COMMIT. What survives in the database?",
+    "options": [
+      "Both Row A and Row B are discarded completely",
+      "Only Row A survives",
+      "Both Row A and Row B survive permanently",
+      "COMMIT fails because SAVEPOINT ends the block"
+    ],
+    "correct": 1,
+    "why": "Rolling back to p1 undoes only operations after p1 (Row B) while keeping prior work (Row A) active until COMMIT persists it."
+  }
+]</script>
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const META = JSON.parse($('#guide-meta').textContent);
+  const UI = META.ui;
+  const KEY = META.storageKey;
+  const load = () => {
+    try {
+      const p = JSON.parse(localStorage.getItem(KEY));
+      return p && typeof p === 'object' && !Array.isArray(p) ? p : {};
+    } catch (e) { return {}; }
+  };
+  const save = patch => { try { localStorage.setItem(KEY, JSON.stringify(Object.assign(load(), patch))); } catch (e) {} };
+  const norm = s => String(s).trim().toLowerCase().replace(/\s+/g, ' ');
+
+  function el(tag, props = {}, children = []) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(props)) {
+      if (k === 'className') node.className = v;
+      else if (k === 'text') node.textContent = v;
+      else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v);
+    }
+    for (const ch of [].concat(children)) if (ch != null) node.append(ch);
+    return node;
+  }
+
+  // Index sidebar, search filter (/), mobile backdrop & Escape, theme & dual-mode print
+  const sidebar = $('#sidebar');
+  const backdrop = $('#sidebarBackdrop');
+  const btnIndex = $('#btnToggleIndex');
+  const mobile = window.matchMedia('(max-width: 860px)');
+  const setCollapsed = c => {
+    document.body.classList.toggle('sidebar-collapsed', c);
+    btnIndex.setAttribute('aria-expanded', String(!c));
+    if ('inert' in sidebar) sidebar.inert = c;
+    backdrop.hidden = c || !mobile.matches;
+  };
+  setCollapsed(mobile.matches);
+  btnIndex.addEventListener('click', () => setCollapsed(!document.body.classList.contains('sidebar-collapsed')));
+  $('#btnCloseIndex').addEventListener('click', () => setCollapsed(true));
+  backdrop.addEventListener('click', () => setCollapsed(true));
+  $$('.nav-link').forEach(a => a.addEventListener('click', () => { if (mobile.matches) setCollapsed(true); }));
+
+  const navFilter = $('#navFilter');
+  const navEmpty = $('#navEmpty');
+  navFilter.addEventListener('input', () => {
+    const q = norm(navFilter.value);
+    let visible = 0;
+    $$('#navList li').forEach(li => {
+      const show = !q || norm(li.textContent).includes(q);
+      li.hidden = !show;
+      if (show) visible++;
+    });
+    navEmpty.hidden = visible > 0;
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && mobile.matches && !document.body.classList.contains('sidebar-collapsed')) {
+      setCollapsed(true);
+      btnIndex.focus();
+      return;
+    }
+    if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) && !document.activeElement?.isContentEditable) {
+      e.preventDefault();
+      setCollapsed(false);
+      navFilter.focus();
+    }
+  });
+
+  const btnTheme = $('#btnTheme');
+  const applyTheme = t => {
+    document.documentElement.setAttribute('data-theme', t);
+    btnTheme.textContent = t === 'dark' ? '☀️ ' + UI.light : '🌙 ' + UI.dark;
+    btnTheme.setAttribute('aria-pressed', String(t === 'dark'));
+    save({ theme: t });
+  };
+  if (load().theme === 'dark') applyTheme('dark');
+  btnTheme.addEventListener('click', () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+  const printGuide = full => {
+    document.body.classList.toggle('print-full', full);
+    window.print();
+  };
+  $('#btnPrint').addEventListener('click', () => printGuide(false));
+  $('#btnPrintFull').addEventListener('click', () => printGuide(true));
+  window.addEventListener('afterprint', () => document.body.classList.remove('print-full'));
+
+  // 1-click Copy button on theory & cheat-sheet <pre> blocks
+  $$('#teoria pre, #xuleta pre').forEach(pre => {
+    const wrap = el('div', { className: 'pre-wrap' });
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.append(pre);
+    const btn = el('button', { type: 'button', className: 'copy-btn', text: UI.copy });
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(pre.textContent.trim());
+        btn.textContent = UI.copied;
+        setTimeout(() => { btn.textContent = UI.copy; }, 1400);
+      } catch (e) {}
+    });
+    wrap.append(btn);
+  });
+
+  // Scroll-spy over full target cards/sections
+  const links = $$('.nav-link');
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + en.target.id));
+    });
+  }, { rootMargin: '-18% 0px -65% 0px' });
+  links.forEach(l => { const t = document.getElementById(l.getAttribute('href').slice(1)); if (t) spy.observe(t); });
+
+  // Block 2 · exercises (.chip[data-val] + .slot[data-ans] | input/select[data-ans]) + auto Reset + Enter key
+  let picked = null;
+  $$('.exercise').forEach(ex => {
+    const chips = $$('.chip', ex);
+    const slots = $$('.slot', ex);
+    const inputs = $$('input[data-ans], select[data-ans]', ex);
+    const syncUsed = () => {
+      const placed = new Set(slots.map(s => norm(s.textContent)).filter(Boolean));
+      chips.forEach(c => c.classList.toggle('used', placed.has(norm(c.dataset.val))));
+    };
+    chips.forEach(c => {
+      c.draggable = true; c.tabIndex = 0; c.setAttribute('role', 'button'); c.setAttribute('aria-pressed', 'false');
+      c.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', c.dataset.val));
+      const pick = () => {
+        const on = picked !== c;
+        $$('.chip.selected').forEach(x => { x.classList.remove('selected'); x.setAttribute('aria-pressed', 'false'); });
+        picked = on ? c : null;
+        if (on) { c.classList.add('selected'); c.setAttribute('aria-pressed', 'true'); }
+      };
+      c.addEventListener('click', pick);
+      c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+    slots.forEach((s, idx) => {
+      s.tabIndex = 0; s.setAttribute('role', 'button');
+      if (!s.hasAttribute('aria-label')) s.setAttribute('aria-label', `Slot ${idx + 1}`);
+      const fill = v => { s.classList.remove('ok', 'err'); s.textContent = v; syncUsed(); };
+      const place = () => {
+        if (picked && ex.contains(picked)) {
+          fill(picked.dataset.val);
+          picked.classList.remove('selected');
+          picked.setAttribute('aria-pressed', 'false');
+          picked = null;
+        } else if (s.textContent) fill('');
+      };
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('over');
+        if (picked) { picked.classList.remove('selected'); picked.setAttribute('aria-pressed', 'false'); picked = null; }
+        fill(e.dataTransfer.getData('text/plain'));
+      });
+      s.addEventListener('click', place);
+      s.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); place(); } });
+    });
+    const btn = $('.check', ex);
+    const fb = $('.feedback', ex);
+    if (fb) fb.setAttribute('role', 'status');
+    if (!btn || !fb) return;
+    const validate = () => {
+      const fields = slots.concat(inputs);
+      let ok = 0;
+      fields.forEach(f => {
+        const val = norm(f.classList.contains('slot') ? f.textContent : f.value);
+        const good = Boolean(val) && f.dataset.ans.split('|').some(a => norm(a) === val);
+        f.classList.remove('ok', 'err');
+        f.classList.add(good ? 'ok' : 'err');
+        if (good) ok++;
+      });
+      const all = ok === fields.length;
+      fb.className = 'feedback ' + (all ? 'good' : 'bad');
+      fb.textContent = all
+        ? (ex.dataset.ok || UI.allCorrect)
+        : `${ok} / ${fields.length} ${UI.correctCount}` + (ex.dataset.hint ? ` · ${UI.hint}: ${ex.dataset.hint}` : '');
+    };
+    btn.addEventListener('click', validate);
+    inputs.forEach(inp => {
+      if (inp.tagName === 'INPUT') inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); validate(); } });
+    });
+    const actions = el('div', { className: 'ex-actions' });
+    btn.parentNode.insertBefore(actions, btn);
+    const resetBtn = el('button', { type: 'button', className: 'btn', text: UI.resetEx });
+    resetBtn.addEventListener('click', () => {
+      slots.forEach(s => { s.textContent = ''; s.classList.remove('ok', 'err'); });
+      inputs.forEach(i => {
+        if (i.tagName === 'SELECT') i.selectedIndex = 0; else i.value = '';
+        i.classList.remove('ok', 'err');
+      });
+      fb.className = 'feedback'; fb.textContent = '';
+      syncUsed();
+    });
+    actions.append(btn, resetBtn);
+  });
+
+  // Block 3 · 3-level quiz, persistent answers, active error retry, timed exam mode & 1-click Anki (.tsv) export
+  const QUIZ = JSON.parse($('#quiz-data').textContent);
+  const host = $('#quizHost');
+  const scoreEl = $('#quizScore');
+  const btnOnlyWrong = $('#btnOnlyWrong');
+  const btnExamMode = $('#btnExamMode');
+  const btnSubmitExam = $('#btnSubmitExam');
+  const examTimerEl = $('#examTimer');
+  const initial = load();
+  const wrong = new Set(initial.wrongIds || []);
+  const answered = Object.assign({}, initial.answered || {});
+  const orderCache = new Map();
+  let level = 1;
+  let onlyWrong = false;
+  let examMode = false;
+  let examTimerId = null;
+  let examSecs = 0;
+  let examPicks = {};
+
+  const getOrder = q => {
+    if (!orderCache.has(q.id)) {
+      const arr = q.options.map((txt, origIdx) => ({ txt, origIdx, isCorrect: origIdx === q.correct }));
+      for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+      orderCache.set(q.id, arr);
+    }
+    return orderCache.get(q.id);
+  };
+
+  function stopExam() {
+    if (examTimerId) { clearInterval(examTimerId); examTimerId = null; }
+    examMode = false;
+    examPicks = {};
+    btnExamMode.setAttribute('aria-pressed', 'false');
+    btnSubmitExam.hidden = true;
+    examTimerEl.hidden = true;
+  }
+
+  function updateExamClock() {
+    const mm = String(Math.floor(examSecs / 60)).padStart(2, '0');
+    const ss = String(examSecs % 60).padStart(2, '0');
+    examTimerEl.textContent = `⏱️ ${UI.timeLeft}: ${mm}:${ss}`;
+  }
+
+  function submitExam() {
+    const subset = QUIZ.filter(q => q.level === level);
+    subset.forEach(q => {
+      const pickedIdx = q.id in examPicks ? examPicks[q.id] : -1;
+      const ok = pickedIdx === q.correct;
+      answered[q.id] = { pickedIdx, ok };
+      if (ok) wrong.delete(q.id); else wrong.add(q.id);
+    });
+    save({ answered, wrongIds: Array.from(wrong) });
+    stopExam();
+    render();
+  }
+
+  function updateScore() {
+    const ids = QUIZ.filter(q => q.level === level).map(q => q.id);
+    const ok = ids.filter(id => answered[id]?.ok === true).length;
+    const done = ids.filter(id => id in answered).length;
+    const totalOk = QUIZ.filter(q => answered[q.id]?.ok === true).length;
+    const pending = ids.filter(id => wrong.has(id)).length;
+    const grade = ids.length ? ((ok / ids.length) * 10).toFixed(1) : '0.0';
+    scoreEl.textContent = examMode
+      ? `${UI.examMode}: ${Object.keys(examPicks).length} / ${ids.length}`
+      : `${UI.score}: ${ok} / ${done} (${ids.length}) · ${UI.grade}: ${grade}/10 · ${UI.globalScore}: ${totalOk} / ${QUIZ.length} · ${UI.toReview}: ${pending}`;
+  }
+
+  function render() {
+    host.replaceChildren();
+    const subset = examMode
+      ? QUIZ.filter(q => q.level === level)
+      : QUIZ.filter(q => q.level === level && (!onlyWrong || wrong.has(q.id)));
+    if (!subset.length) host.append(el('p', { className: 'muted', text: onlyWrong ? UI.noWrong : UI.empty }));
+    subset.forEach((q, n) => {
+      const retryMode = !examMode && onlyWrong && answered[q.id]?.ok === false;
+      if (retryMode) orderCache.delete(q.id);
+      const opts = getOrder(q);
+      const prev = examMode || retryMode ? null : answered[q.id];
+      const why = el('div', { className: 'quiz-why', text: q.why || '' });
+      why.hidden = !prev;
+      const wrap = el('div', { className: 'quiz-opts' });
+      opts.forEach((o, pos) => {
+        const baseLabel = `${String.fromCharCode(65 + pos)}) ${o.txt}`;
+        const b = el('button', { type: 'button', className: 'quiz-opt', text: baseLabel });
+        if (examMode && examPicks[q.id] === o.origIdx) b.classList.add('picked');
+        if (prev) {
+          b.disabled = true;
+          if (o.isCorrect) { b.classList.add('ok'); b.textContent = `✓ ${baseLabel}`; }
+          else if (prev.pickedIdx === o.origIdx) { b.classList.add('err'); b.textContent = `✗ ${baseLabel}`; }
+        }
+        b.addEventListener('click', () => {
+          if (examMode) {
+            examPicks[q.id] = o.origIdx;
+            Array.from(wrap.children).forEach(bb => bb.classList.remove('picked'));
+            b.classList.add('picked');
+            updateScore();
+            return;
+          }
+          Array.from(wrap.children).forEach((bb, i) => {
+            bb.disabled = true;
+            if (opts[i].isCorrect) { bb.classList.add('ok'); if (!bb.textContent.startsWith('✓ ')) bb.textContent = `✓ ${bb.textContent}`; }
+          });
+          if (!o.isCorrect) { b.classList.add('err'); b.textContent = `✗ ${baseLabel}`; }
+          answered[q.id] = { pickedIdx: o.origIdx, ok: o.isCorrect };
+          if (o.isCorrect) wrong.delete(q.id); else wrong.add(q.id);
+          save({ answered, wrongIds: Array.from(wrong) });
+          why.hidden = false;
+          updateScore();
+        });
+        wrap.append(b);
+      });
+      const head = el('div', { className: 'quiz-head' }, [
+        el('div', { className: 'quiz-q', text: `${n + 1}. ${q.q}` }),
+        q.src ? el('span', { className: 'src-tag', text: q.src }) : null,
+      ]);
+      host.append(el('div', { className: 'quiz-card' }, [head, wrap, why]));
+    });
+    updateScore();
+  }
+
+  $$('.level-tab').forEach(tab => tab.addEventListener('click', () => {
+    stopExam();
+    $$('.level-tab').forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+    level = Number(tab.dataset.lvl);
+    render();
+  }));
+  btnOnlyWrong.addEventListener('click', () => {
+    stopExam();
+    onlyWrong = !onlyWrong;
+    btnOnlyWrong.setAttribute('aria-pressed', String(onlyWrong));
+    render();
+  });
+  $('#btnResetQuiz').addEventListener('click', () => {
+    stopExam();
+    QUIZ.filter(q => q.level === level).forEach(q => { delete answered[q.id]; wrong.delete(q.id); orderCache.delete(q.id); });
+    save({ answered, wrongIds: Array.from(wrong) });
+    render();
+  });
+  btnExamMode.addEventListener('click', () => {
+    if (examMode) { stopExam(); render(); return; }
+    onlyWrong = false;
+    btnOnlyWrong.setAttribute('aria-pressed', 'false');
+    const subset = QUIZ.filter(q => q.level === level);
+    subset.forEach(q => orderCache.delete(q.id));
+    examMode = true;
+    examPicks = {};
+    examSecs = Math.max(1, subset.length) * 60;
+    btnExamMode.setAttribute('aria-pressed', 'true');
+    btnSubmitExam.hidden = false;
+    examTimerEl.hidden = false;
+    updateExamClock();
+    examTimerId = setInterval(() => {
+      examSecs -= 1;
+      updateExamClock();
+      if (examSecs <= 0) submitExam();
+    }, 1000);
+    render();
+  });
+  btnSubmitExam.addEventListener('click', submitExam);
+
+  $('#btnExportAnki').addEventListener('click', () => {
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\t\r\n]+/g, ' ').trim();
+    const lines = ['#separator:tab', '#html:true', '#tags column:3'];
+    QUIZ.forEach(q => {
+      const front = `[L${q.level}] ${esc(q.q)}<br><br>` + q.options.map(o => `• ${esc(o)}`).join('<br>');
+      const back = `<strong>${esc(q.options[q.correct])}</strong>` + (q.why ? `<br><br>${esc(q.why)}` : '');
+      const srcSlug = q.src ? '_' + String(q.src).toLowerCase().replace(/[^\w-]+/g, '_') : '';
+      const tags = `study-guide level-${q.level}` + (srcSlug ? ` ${srcSlug}` : '');
+      lines.push(`${front}\t${back}\t${tags}`);
+    });
+    $$('details.oral-check').forEach(d => {
+      const sum = $('summary', d);
+      const ans = $('.oral-ans', d);
+      if (sum && ans) lines.push(`${esc(sum.textContent)}\t${esc(ans.textContent)}\tstudy-guide oral-check`);
+    });
+    const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/tab-separated-values;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = el('a', { href: url, download: `${KEY}_anki.tsv` });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
