@@ -19,13 +19,13 @@ A standard, 100% offline **Agent Skill** (`SKILL.md`) that turns course notes, s
 Clone or copy this folder into your global or workspace skills directory:
 
 ```bash
-git clone https://github.com/<your-username>/master-study-guides.git ~/.agents/skills/master-study-guides
+git clone https://github.com/XLVII-DEV/master-study-guides.git ~/.agents/skills/master-study-guides
 ```
 
 Or install via the open skills CLI:
 
 ```bash
-npx skills add <your-username>/master-study-guides
+npx skills add XLVII-DEV/master-study-guides
 ```
 
 ## Quick Usage (CLI)
