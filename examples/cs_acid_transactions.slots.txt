@@ -45,11 +45,11 @@ UPDATE accounts SET balance = balance + 100 WHERE id = 2;
 COMMIT;</code></pre>
   <div class="compare-grid">
     <div class="compare-box bad">
-      <strong>❌ Common Mistake</strong>
+      <strong>Common Mistake</strong>
       Leaving <code>BEGIN TRANSACTION</code> open inside application error handlers without calling <code>ROLLBACK</code> holds row locks indefinitely and stalls other users.
     </div>
     <div class="compare-box good">
-      <strong>✅ Right Way</strong>
+      <strong>Right Way</strong>
       Always wrap transactional blocks in <code>try { ... COMMIT; } catch { ROLLBACK; }</code> so locks release immediately on failure.
     </div>
   </div>

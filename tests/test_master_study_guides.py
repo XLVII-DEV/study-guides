@@ -54,6 +54,10 @@ class StudyGuidesTests(unittest.TestCase):
                 html_text = out_html.read_text(encoding="utf-8")
                 self.assertIn("btnExportAnki", html_text)
                 self.assertIn("btnExamMode", html_text)
+                self.assertNotIn("btnPrint", html_text)
+                self.assertIn('<svg class="ico', html_text)
+                for banned_emoji in ("\U0001f319", "\u2600\ufe0f", "\U0001f5a8", "\U0001f4c4", "\u23f1", "\U0001f4e5", "\u274c", "\u2705"):
+                    self.assertNotIn(banned_emoji, html_text)
 
                 if node_bin:
                     js_file = Path(tmp) / f"{slot_file.stem}.js"

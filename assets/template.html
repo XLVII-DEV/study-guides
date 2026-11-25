@@ -43,6 +43,7 @@
       --accent: #58a6ff; --accent-soft: #13233a; --on-accent: #0d1117;
     }
     *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     html { scroll-behavior: smooth; scroll-padding-top: 72px; }
     body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.65; transition: background-color 180ms ease, color 180ms ease; }
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -71,7 +72,7 @@
     body.sidebar-collapsed .sidebar { margin-left: calc(var(--sidebar-w) * -1); opacity: 0; pointer-events: none; visibility: hidden; }
     .sidebar-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); z-index: 35; }
     .sidebar-head { padding: 4px 8px 12px; border-bottom: 1px solid var(--border); font-family: var(--font-serif); font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .close-sidebar { display: none; height: 30px; padding: 0 9px; font-size: 13px; }
+    .btn.close-sidebar { display: none; height: 30px; padding: 0 8px; }
     .nav-filter { width: 100%; height: 34px; margin-top: 10px; padding: 0 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--border-strong); border-radius: 6px; font-family: var(--font-body); font-size: 13px; }
     .nav-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 2px; }
     .nav-empty { font-size: 13px; margin: 10px 8px 0; }
@@ -84,11 +85,14 @@
     .topbar { position: sticky; top: 0; z-index: 20; height: 58px; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .topbar-left, .topbar-actions { display: flex; align-items: center; gap: 8px; }
     .topbar-meta { font-size: 13px; color: var(--ink-muted); font-weight: 500; }
-    .btn { height: 36px; padding: 0 12px; background: var(--surface); color: var(--ink); border: 1px solid var(--border-strong); border-radius: var(--radius); font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; height: 36px; padding: 0 12px; background: var(--surface); color: var(--ink); border: 1px solid var(--border-strong); border-radius: var(--radius); font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease; }
     .btn:hover { border-color: var(--accent); background: var(--accent-soft); }
     .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
     .btn.primary:hover { filter: brightness(1.08); }
     .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+    .ico { width: 15px; height: 15px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    html[data-theme="light"] .ico-sun { display: none; }
+    html[data-theme="dark"] .ico-moon { display: none; }
 
     .content-wrap { max-width: 940px; margin: 0 auto; padding: 28px 24px 64px; display: grid; gap: 24px; }
     .block { display: grid; gap: 24px; }
@@ -105,7 +109,10 @@
     .callout.trap strong:first-child { color: var(--err); }
     .compare-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 14px 0; }
     .compare-box { border: 1px solid var(--border); border-left-width: 4px; border-radius: var(--radius); padding: 12px 14px; background: var(--bg); font-size: 14px; }
-    .compare-box strong:first-child { display: block; margin-bottom: 6px; }
+    .compare-box strong:first-child { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+    .compare-box.bad strong:first-child::before,
+    .compare-box.good strong:first-child::before { content: "\00D7"; display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; font-size: 11px; font-weight: 700; line-height: 1; flex-shrink: 0; background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
+    .compare-box.good strong:first-child::before { content: "\2713"; background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
     .compare-box.bad { border-left-color: var(--err); }
     .compare-box.bad strong:first-child { color: var(--err); }
     .compare-box.good { border-left-color: var(--ok); }
@@ -142,6 +149,7 @@
     .level-tab { padding: 8px 15px; background: var(--surface-low); border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-weight: 600; color: var(--ink-muted); cursor: pointer; }
     .level-tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
     .quiz-score { font-size: 13px; font-weight: 600; color: var(--ink-muted); margin-bottom: 12px; }
+    .quiz-timer { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
     .quiz-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .quiz-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); padding: 16px; margin-bottom: 14px; }
     .quiz-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
@@ -155,9 +163,9 @@
 
     @media (max-width: 860px) {
       .sidebar { position: fixed; left: 0; }
-      .close-sidebar { display: inline-flex; align-items: center; }
+      .btn.close-sidebar { display: inline-flex; }
       .quiz-opts, .compare-grid { grid-template-columns: 1fr; }
-      .topbar-meta, #btnPrintFull { display: none; }
+      .topbar-meta { display: none; }
       .card { padding: 20px; }
       table { display: block; overflow-x: auto; }
     }
@@ -172,7 +180,7 @@
         --accent: #8c5214; --on-accent: #ffffff; --ok: #146c53; --err: #b42318;
       }
       .sidebar, .sidebar-backdrop, .topbar, .skip-link, #practica, #autoavaluacio, .copy-btn, .no-print { display: none !important; }
-      body:not(.print-full) #teoria, body:not(.print-full) #inici > p { display: none !important; }
+      #teoria, #inici > p { display: none !important; }
       html, body { background: #ffffff !important; color: #111111 !important; font-size: 13px; line-height: 1.45; }
       .content-wrap { max-width: 100%; padding: 0; gap: 10px; }
       .card { border: 1px solid #cccccc !important; background: #ffffff !important; padding: 12px 14px; }
@@ -191,7 +199,7 @@
     <div>
       <div class="sidebar-head">
         <span>{{ui.index}}</span>
-        <button class="btn close-sidebar" type="button" id="btnCloseIndex" aria-label="{{ui.closeIndex}}">✕</button>
+        <button class="btn close-sidebar" type="button" id="btnCloseIndex" aria-label="{{ui.closeIndex}}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
       <input class="nav-filter" id="navFilter" type="search" placeholder="{{ui.filterPlaceholder}}" aria-label="{{ui.filterPlaceholder}}">
       <nav aria-label="{{ui.index}}">
@@ -208,13 +216,11 @@
   <div class="main-col">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="btn" type="button" id="btnToggleIndex" aria-expanded="true" aria-controls="sidebar">☰ {{ui.index}}</button>
+        <button class="btn" type="button" id="btnToggleIndex" aria-expanded="true" aria-controls="sidebar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>{{ui.index}}</span></button>
         <span class="topbar-meta">{{TOPBAR_META}}</span>
       </div>
       <div class="topbar-actions">
-        <button class="btn" type="button" id="btnTheme" aria-pressed="false">🌙 {{ui.dark}}</button>
-        <button class="btn" type="button" id="btnPrint">🖨️ {{ui.print}}</button>
-        <button class="btn" type="button" id="btnPrintFull">📄 {{ui.printFull}}</button>
+        <button class="btn" type="button" id="btnTheme" aria-pressed="false"><svg class="ico ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="ico ico-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg><span id="themeLabel">{{ui.dark}}</span></button>
       </div>
     </header>
 
@@ -249,10 +255,10 @@
             <button class="level-tab" type="button" role="tab" data-lvl="3" aria-selected="false">{{ui.level3}}</button>
           </div>
           <div class="quiz-actions">
-            <span class="quiz-score" id="examTimer" style="margin:0;" hidden></span>
-            <button class="btn" type="button" id="btnExamMode" aria-pressed="false">⏱️ {{ui.examMode}}</button>
+            <span class="quiz-timer" id="examTimer" hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6"/></svg><span id="examTimerText"></span></span>
+            <button class="btn" type="button" id="btnExamMode" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6"/></svg><span>{{ui.examMode}}</span></button>
             <button class="btn primary" type="button" id="btnSubmitExam" hidden>{{ui.submitExam}}</button>
-            <button class="btn" type="button" id="btnExportAnki">📥 {{ui.exportAnki}}</button>
+            <button class="btn" type="button" id="btnExportAnki"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>{{ui.exportAnki}}</span></button>
             <button class="btn" type="button" id="btnOnlyWrong" aria-pressed="false">{{ui.onlyWrong}}</button>
             <button class="btn" type="button" id="btnResetQuiz">{{ui.reset}}</button>
           </div>
@@ -345,22 +351,15 @@
   });
 
   const btnTheme = $('#btnTheme');
+  const themeLabel = $('#themeLabel');
   const applyTheme = t => {
     document.documentElement.setAttribute('data-theme', t);
-    btnTheme.textContent = t === 'dark' ? '☀️ ' + UI.light : '🌙 ' + UI.dark;
+    themeLabel.textContent = t === 'dark' ? UI.light : UI.dark;
     btnTheme.setAttribute('aria-pressed', String(t === 'dark'));
     save({ theme: t });
   };
   if (load().theme === 'dark') applyTheme('dark');
   btnTheme.addEventListener('click', () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
-
-  const printGuide = full => {
-    document.body.classList.toggle('print-full', full);
-    window.print();
-  };
-  $('#btnPrint').addEventListener('click', () => printGuide(false));
-  $('#btnPrintFull').addEventListener('click', () => printGuide(true));
-  window.addEventListener('afterprint', () => document.body.classList.remove('print-full'));
 
   // 1-click Copy button on theory & cheat-sheet <pre> blocks
   $$('#teoria pre, #xuleta pre').forEach(pre => {
@@ -479,6 +478,7 @@
   const btnExamMode = $('#btnExamMode');
   const btnSubmitExam = $('#btnSubmitExam');
   const examTimerEl = $('#examTimer');
+  const examTimerText = $('#examTimerText');
   const initial = load();
   const wrong = new Set(initial.wrongIds || []);
   const answered = Object.assign({}, initial.answered || {});
@@ -511,7 +511,7 @@
   function updateExamClock() {
     const mm = String(Math.floor(examSecs / 60)).padStart(2, '0');
     const ss = String(examSecs % 60).padStart(2, '0');
-    examTimerEl.textContent = `⏱️ ${UI.timeLeft}: ${mm}:${ss}`;
+    examTimerText.textContent = `${UI.timeLeft}: ${mm}:${ss}`;
   }
 
   function submitExam() {

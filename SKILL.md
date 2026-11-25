@@ -49,12 +49,12 @@ Teach like an extraordinary classroom professor, not a dry encyclopedia. Never d
    - **Move 1 · Intuition first**: state what real problem this concept solves (1–2 sentences) before introducing formal definitions.
    - **Move 2 · Mechanism & Visual**: show how it works internally via dark-mode-safe `<svg>` (`style="fill:var(--ink)"`), `<ol class="step-trace">` whiteboard traces, or comparison tables.
    - **Move 3 · Worked Example**: walk through concrete input → intermediate state → final output (pulled from real course exercises when available).
-   - **Move 4 · Contrast & Takeaway**: pair `<div class="compare-grid">` (`❌ Common mistake` vs `✅ Right way`) or `.callout.trap` with a closing `<div class="key-takeaway"><strong>Key takeaway:</strong> ...</div>`.
+   - **Move 4 · Contrast & Takeaway**: pair `<div class="compare-grid">` (`Common mistake` vs `Right way`) or `.callout.trap` with a closing `<div class="key-takeaway"><strong>Key takeaway:</strong> ...</div>`.
    - Use `<span class="src-tag">Source: ...</span>` for traceability, `<pre><code>` for code (auto-gets Copy button), and optional `<details class="oral-check">` for active recall / oral exam practice (also exported to Anki `.tsv`).
 4. **`practica`** (HTML — **Block 2**): `.exercise` blocks mixing `.chip[data-val]` + `.slot[data-ans]`, `input.field[data-ans]`, and `select.field[data-ans]` (alternatives separated by `|`).
 5. **`quiz`** (pure JSON, no `<script>` or Markdown fences — **Block 3**): array of `{id, level, q, options, correct, why, src?}` across `1` (Foundations), `2` (Application), and `3` (Mastery); recommended `6` questions per level (`18` total).
    - **2-Layer Diagnostic `why` Rule**: never just restate the correct option. Write 2 concise sentences: *(a)* the rule that proves the right answer, and *(b)* why the most tempting distractor misleads.
-6. **`xuleta`** (HTML — **Block 4**): ultra-dense pure-HTML tables and rules designed to fit cleanly on **1–2 A4 pages** when clicking `🖨️ A4 cheat-sheet`.
+6. **`xuleta`** (HTML — **Block 4**): ultra-dense pure-HTML tables and rules designed to fit cleanly on **1–2 A4 pages** when printing via `Cmd/Ctrl + P` (`@media print`).
 
 ### Step 3 · Compile & Strictly Verify (Single Command)
 Run `build_guide.py` (writes atomically via temp file, injects round-trip markers, and runs `verify_html_quiz.py --strict-guide` — do **not** run `verify_html_quiz.py` separately):

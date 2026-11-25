@@ -7,7 +7,7 @@
 
 An open **Agent Skill** (`SKILL.md`) that turns lecture slides, PDFs, notes, or codebases into **single-file, 100% offline interactive HTML study guides** — while cutting LLM output token consumption by **~75–80%**.
 
-👉 **[Live Interactive Demo (GitHub Pages)](https://xlvii-dev.github.io/study-guides/)** · *([docs/index.html](./docs/index.html) compiled straight from `examples/cs_acid_transactions.slots.txt`)*
+**[Live Interactive Demo (GitHub Pages)](https://xlvii-dev.github.io/study-guides/)** · *([docs/index.html](./docs/index.html) compiled straight from `examples/cs_acid_transactions.slots.txt`)*
 
 ---
 
@@ -32,7 +32,7 @@ Asking an AI agent to "make an interactive HTML study guide" from scratch usuall
 - **3 Visual Presets + Warm Dark Mode**: choose `warm-serif` (Bronze/Ocre reading paper), `ink-editorial` (Ivory + Burgundy), or `slate-tech` (Crisp Slate + Petrol Teal) — all with dark mode, `/` sidebar search, and 1-click `Copy` buttons on code blocks.
 - **3-Level Anti-Bias Quiz + Timed Exam Mode**: splits questions into *Foundations*, *Application*, and *Mastery* with runtime Fisher-Yates shuffling, persistent `localStorage` scores (`/10`), active mistake-retry mode, and a **Timed Exam Mode** that hides feedback until submission.
 - **1-Click Anki Export (`.tsv`)**: exports every quiz item and `<details class="oral-check">` card directly to an Anki-ready UTF-8 `.tsv` file with level and source tags.
-- **Dual-Mode A4 Print**: `🖨️ A4 cheat-sheet` prints only the 1–2 page summary even while browsing in dark mode; `📄 Full guide` prints the full theory + cheat-sheet.
+- **Dark-Safe A4 Print (`@media print`)**: pressing `Cmd/Ctrl + P` automatically formats a crisp 1–2 page cheat-sheet even while browsing in dark mode.
 - **Lossless Round-Trip Editing (`--extract`)**: pull editable 6-slot files back out of any compiled guide in milliseconds without cluttering your study folders.
 - **7 Native UI Languages**: `en`, `es`, `ca`, `fr`, `de`, `pt`, `it` out of the box (plus full `"ui"` overrides).
 - **Strict Structural & Psychometric Verifier (`scripts/verify_html_quiz.py`)**: blocks external CDNs, unsafe DOM/`HTMLParser` vectors, dark-mode-broken SVGs, unsolvable drag-and-drop drills, boolean JSON traps, letter overuse, streaks `>= 3`, and length-biased correct answers with actionable `→ AI Fix:` hints.

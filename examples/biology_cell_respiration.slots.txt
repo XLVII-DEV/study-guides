@@ -39,11 +39,11 @@
   </ol>
   <div class="compare-grid">
     <div class="compare-box bad">
-      <strong>❌ Common Mistake</strong>
+      <strong>Common Mistake</strong>
       Thinking fermentation stops because muscles run out of ATP directly. Without O₂, the Electron Transport Chain backs up and starves cells of empty <code>NAD⁺</code>.
     </div>
     <div class="compare-box good">
-      <strong>✅ Right Way</strong>
+      <strong>Right Way</strong>
       Fermentation exists solely to oxidize <code>NADH → NAD⁺</code> so glycolysis can keep yielding 2 substrate-level ATP without oxygen.
     </div>
   </div>

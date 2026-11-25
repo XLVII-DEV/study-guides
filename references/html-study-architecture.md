@@ -39,10 +39,10 @@ Set `"themePreset"` inside `<!-- @slot meta -->`:
    - **Pedagogical components**:
      - `<span class="src-tag">Source: Lecture 3</span>`: traceability badge.
      - `<ol class="step-trace"><li>...</li></ol>`: numbered whiteboard step-by-step execution or derivation trace.
-     - `<div class="compare-grid"><div class="compare-box bad"><strong>❌ Common mistake</strong>...</div><div class="compare-box good"><strong>✅ Right way</strong>...</div></div>`: side-by-side mistake vs fix.
+     - `<div class="compare-grid"><div class="compare-box bad"><strong>Common mistake</strong>...</div><div class="compare-box good"><strong>Right way</strong>...</div></div>`: side-by-side mistake vs fix.
      - `<div class="callout">` and `<div class="callout trap"><strong>Exam trap:</strong> ...</div>`.
      - `<div class="key-takeaway"><strong>Key takeaway:</strong> ...</div>`: closing synthesis rule.
-     - `<details class="oral-check"><summary>Question...</summary><div class="oral-ans">Model answer...</div></details>`: active recall card (automatically included in `📥 Anki (.tsv)` export).
+     - `<details class="oral-check"><summary>Question...</summary><div class="oral-ans">Model answer...</div></details>`: active recall card (automatically included in `Anki (.tsv)` export).
      - `<figure class="diagram"><svg ...>...</svg><figcaption>...</figcaption></figure>` and `<pre><code>...</code></pre>`.
 4. **`<!-- @slot practica -->`** (HTML — **Block 2**):
    - `<div class="exercise" data-hint="short hint" data-ok="Success message">` combining `.chip[data-val]` + `.slot[data-ans]`, `<input class="field" type="text" data-ans="a|b">`, and `<select class="field" data-ans="a"><option value="a">...</option></select>`, ending with `<button class="btn primary check" type="button">Check</button><div class="feedback"></div>`.
@@ -54,7 +54,7 @@ Set `"themePreset"` inside `<!-- @slot meta -->`:
 6. **`<!-- @slot xuleta -->`** (HTML — **Block 4**): pure-HTML A4 tables and checklists.
 
 ### Reserved Template IDs (do not reuse inside slots)
-`mainContent`, `inici`, `teoria`, `practica`, `autoavaluacio`, `xuleta`, `sidebar`, `sidebarBackdrop`, `navFilter`, `navList`, `navEmpty`, `btnToggleIndex`, `btnCloseIndex`, `btnTheme`, `btnPrint`, `btnPrintFull`, `examTimer`, `btnExamMode`, `btnSubmitExam`, `btnExportAnki`, `quizScore`, `quizHost`, `btnOnlyWrong`, `btnResetQuiz`, `guide-meta`, `quiz-data`.
+`mainContent`, `inici`, `teoria`, `practica`, `autoavaluacio`, `xuleta`, `sidebar`, `sidebarBackdrop`, `navFilter`, `navList`, `navEmpty`, `btnToggleIndex`, `btnCloseIndex`, `btnTheme`, `themeLabel`, `examTimer`, `examTimerText`, `btnExamMode`, `btnSubmitExam`, `btnExportAnki`, `quizScore`, `quizHost`, `btnOnlyWrong`, `btnResetQuiz`, `guide-meta`, `quiz-data`.
 
 ---
 
