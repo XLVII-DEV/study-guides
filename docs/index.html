@@ -6,6 +6,7 @@
   <title>Study Guide · Database Transactions &amp; ACID Guarantees</title>
   <style>
     :root {
+      color-scheme: light;
       --bg: #fbf7ec; --surface: #fffdf7; --surface-low: #f4eedb; --surface-code: #ede5cf;
       --border: #dfd6bc; --border-strong: #8a7e63; --ink: #1f2421; --ink-muted: #5a5549;
       --accent: #8c5214; --accent-soft: #f3e6cf; --on-accent: #ffffff;
@@ -16,6 +17,7 @@
       --sidebar-w: 272px; --radius: 8px;
     }
     html[data-theme="dark"] {
+      color-scheme: dark;
       --bg: #141310; --surface: #1d1b17; --surface-low: #26231d; --surface-code: #2c2821;
       --border: #3a342a; --border-strong: #7e7360; --ink: #ede8dc; --ink-muted: #aba392;
       --accent: #e5a94c; --accent-soft: #2e2414; --on-accent: #1d1b17;
@@ -174,7 +176,8 @@
       *, *::before, *::after { transition: none !important; }
     }
     @media print {
-      :root, html[data-theme="dark"], html[data-preset] {
+      :root, html[data-theme], html[data-preset], html[data-preset][data-theme] {
+        color-scheme: light;
         --bg: #ffffff; --surface: #ffffff; --surface-low: #f4f4f4; --surface-code: #f4f4f4;
         --border: #cccccc; --border-strong: #888888; --ink: #111111; --ink-muted: #444444;
         --accent: #8c5214; --on-accent: #ffffff; --ok: #146c53; --err: #b42318;
