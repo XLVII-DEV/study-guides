@@ -1,0 +1,90 @@
+<!-- @slot meta -->
+{"lang": "ca", "title": "Guia Mestra · Exemple Mínim · Transaccions ACID", "topbarMeta": "Bases de Dades · Unitat 3", "storageKey": "study_demo_acid_v1", "sidebarFoot": "Exemple Canònic · Warm Academic Serif"}
+
+<!-- @slot hero -->
+<div class="eyebrow">Bases de Dades · Nivell CFGS <span class="src-tag">Font: Tema 3</span></div>
+<h1>Transaccions i Propietats ACID</h1>
+<p>Una transacció agrupa diverses operacions SQL perquè s'executin com una unitat indivisible: o es confirmen totes amb <code>COMMIT</code> o es desfan totes amb <code>ROLLBACK</code>.</p>
+<div class="summary-strip">
+  <div class="pill-box"><span class="pill-label">Regla d'or</span><strong>Tot o res (Atomicitat)</strong></div>
+  <div class="pill-box"><span class="pill-label">Confirmació</span><code>COMMIT</code> fa els canvis permanents</div>
+  <div class="pill-box"><span class="pill-label"> Recuperació</span><code>ROLLBACK</code> torna a l'estat previ</div>
+</div>
+
+<!-- @slot teoria -->
+<section class="card" id="t-cicle">
+  <div class="eyebrow">Bloc 1 · 01 <span class="src-tag">Font: Apunts T3 p.4</span></div>
+  <h2 id="h-cicle">Cicle de vida d'una transacció</h2>
+  <p>En una transferència bancària entre dos comptes, restar saldo d'origen i sumar-lo a destí han d'anar dins la mateixa transacció explícita.</p>
+  <figure class="diagram">
+    <svg viewBox="0 0 560 92" width="100%" role="img" aria-label="Flux BEGIN cap a COMMIT o ROLLBACK">
+      <rect x="4" y="20" width="130" height="50" rx="8" style="fill:var(--surface-low);stroke:var(--border-strong)" />
+      <text x="69" y="50" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--ink)">BEGIN TRAN</text>
+      <line x1="134" y1="45" x2="204" y2="45" style="stroke:var(--border-strong);stroke-width:1.5" />
+      <rect x="204" y="20" width="150" height="50" rx="8" style="fill:var(--surface);stroke:var(--accent);stroke-width:1.5" />
+      <text x="279" y="50" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent)">UPDATE A + UPDATE B</text>
+      <line x1="354" y1="45" x2="420" y2="45" style="stroke:var(--border-strong);stroke-width:1.5" />
+      <rect x="420" y="20" width="134" height="50" rx="8" style="fill:var(--surface);stroke:var(--ok);stroke-width:1.5" />
+      <text x="487" y="50" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--ok)">COMMIT / ROLLBACK</text>
+    </svg>
+    <figcaption>Si qualsevol pas falla abans del COMMIT, el motor revoca tots els canvis pendents.</figcaption>
+  </figure>
+  <pre><code>BEGIN TRANSACTION;
+UPDATE comptes SET saldo = saldo - 100 WHERE id = 1;
+UPDATE comptes SET saldo = saldo + 100 WHERE id = 2;
+COMMIT;</code></pre>
+  <div class="callout trap"><strong>Trampa d'examen:</strong> deixar una transacció oberta sense <code>COMMIT</code> ni <code>ROLLBACK</code> manté els bloquejos actius i congela altres sessions.</div>
+  <details class="oral-check">
+    <summary>Pregunta d'entrevista: què passa si cau el corrent just després del COMMIT?</summary>
+    <div class="oral-ans">Gràcies a la <strong>Durabilitat (D)</strong> i al registre <em>Write-Ahead Log (WAL)</em>, en arrencar de nou el SGBD reconstrueix i conserva el canvi confirmat.</div>
+  </details>
+</section>
+
+<!-- @slot practica -->
+<div class="exercise" data-hint="COMMIT confirma; ROLLBACK desfà" data-ok="Correcte: domines les ordres de control transaccional.">
+  <strong>1. Completa la seqüència i valida l'aïllament</strong>
+  <div class="chip-bank">
+    <span class="chip" data-val="BEGIN">BEGIN</span>
+    <span class="chip" data-val="COMMIT">COMMIT</span>
+    <span class="chip" data-val="ROLLBACK">ROLLBACK</span>
+  </div>
+  <p>Iniciem amb <span class="slot" data-ans="BEGIN"></span>, si hi ha un error executem <span class="slot" data-ans="ROLLBACK"></span> i si tot va bé tanquem amb <span class="slot" data-ans="COMMIT"></span>.</p>
+  <p>Propietat ACID que evita lectures brutes entre sessions:
+    <select class="field" data-ans="aillament" aria-label="Propietat ACID">
+      <option value="">—</option>
+      <option value="atomicitat">Atomicitat</option>
+      <option value="aillament">Aïllament</option>
+      <option value="durabilitat">Durabilitat</option>
+    </select>
+  </p>
+  <p>Ordre SQL per marcar un punt intermedi abans d'un rollback parcial: <input class="field" type="text" data-ans="SAVEPOINT" aria-label="Ordre de punt intermedi" placeholder="SQL..."></p>
+  <button class="btn primary check" type="button">Comprovar</button>
+  <div class="feedback"></div>
+</div>
+
+<!-- @slot quiz -->
+[
+  {"id": "n1_q1", "level": 1, "src": "T3 p.2", "q": "Quina propietat ACID garanteix que s'executin totes les operacions o cap?", "options": ["Atomicitat", "Consistència d'esquema", "Aïllament entre sessions", "Durabilitat al disc físic"], "correct": 0, "why": "L'Atomicitat tracta el bloc d'operacions com una sola unitat indivisible."},
+  {"id": "n1_q2", "level": 1, "src": "T3 p.3", "q": "Quina ordre SQL desfà els canvis pendents d'una transacció activa?", "options": ["COMMIT WORK de tota la sessió", "SAVEPOINT temporal d'estat", "ROLLBACK", "TRUNCATE de la taula activa"], "correct": 2, "why": "ROLLBACK reverteix totes les modificacions des de l'inici de la transacció."},
+  {"id": "n1_q3", "level": 1, "src": "T3 p.4", "q": "Quina propietat assegura que les dades confirmades sobreviuen a una apagada?", "options": ["Atomicitat del bloc SQL", "Durabilitat dels canvis", "Aïllament de lectures", " Concurrència optimista"], "correct": 1, "why": "La Durabilitat persisteix els canvis al log transaccional abans de donar el COMMIT per bo."},
+  {"id": "n1_q4", "level": 1, "src": "T3 p.5", "q": "Per a què serveix definir un SAVEPOINT dins d'una transacció llarga?", "options": ["Per confirmar definitivament el bloc actual", "Per desactivar la comprovació de claus foranes", "Per tancar automàticament la connexió activa", "Per desfer només fins a un punt concret"], "correct": 3, "why": "SAVEPOINT permet fer un ROLLBACK parcial sense perdre la feina prèvia de la transacció."},
+  {"id": "n2_q1", "level": 2, "src": "Act 1", "q": "Una sessió llegeix files modificades per una altra sessió que encara no ha fet COMMIT. Com es diu aquest fenomen?", "options": ["Lectura fantasma de rang", "Lectura bruta (Dirty Read)", "Bloqueig mutu (Deadlock)", "Lectura no repetible simple"], "correct": 1, "why": "Llegir dades no confirmades s'anomena Dirty Read; si l'altra sessió fa ROLLBACK, la dada llegida mai ha existit."},
+  {"id": "n2_q2", "level": 2, "src": "Act 1", "q": "Si una sessió s'atura sense fer COMMIT ni ROLLBACK perquè cau la xarxa, què fa el SGBD?", "options": ["Confirma els canvis pendents per defecte", "Ignora els bloquejos i deixa dades a mitges", "Aplica ROLLBACK automàtic de la sessió", "Esborra completament les taules afectades"], "correct": 2, "why": "Per preservar l'Atomicitat i la Consistència, tota transacció òrfena no confirmada es reverteix."},
+  {"id": "n2_q3", "level": 2, "src": "Act 2", "q": "En quin nivell d'aïllament estàndard es permeten les lectures brutes (Dirty Reads)?", "options": ["READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SERIALIZABLE"], "correct": 0, "why": "READ UNCOMMITTED no respecta bloquejos d'escriptura aliens i llegeix canvis sense confirmar."},
+  {"id": "n2_q4", "level": 2, "src": "Act 2", "q": "Què passa després d'executar TRUNCATE dins un motor que suporta DDL transaccional quan fem ROLLBACK?", "options": ["Les files es perden perquè mai entra al log", "El motor converteix l'ordre en un COMMIT forçat", "Només es recuperen els índexs però no les dades", "Es recuperen les files esborrades"], "correct": 3, "why": "En motors amb DDL transaccional (com SQL Server o PostgreSQL), TRUNCATE dins BEGIN TRAN es pot revertir amb ROLLBACK."},
+  {"id": "n3_q1", "level": 3, "src": "T3 p.9", "q": "Dues transaccions es bloquegen esperant cadascuna el recurs que reté l'altra. Com ho resol el SGBD?", "options": ["Espera indefinidament fins al reinici manual", "Confirma totes dues saltant-se les restriccions", "Tria una víctima i li aplica un ROLLBACK", "Passa la base de dades a mode només lectura"], "correct": 2, "why": "El detector de Deadlocks avorta la transacció de menor cost amb ROLLBACK perquè l'altra pugui acabar."},
+  {"id": "n3_q2", "level": 3, "src": "T3 p.10", "q": "Quin mecanisme intern permet garantir la Durabilitat sense escriure totes les pàgines de dades a disc en cada COMMIT?", "options": ["Write-Ahead Logging (WAL) seqüencial", "Memòria cau volàtil sense registre en disc", "Índexs agrupats en arbre balancejat B+", "Particionament horitzontal de les taules"], "correct": 0, "why": "Amb WAL n'hi ha prou d'escriure seqüencialment el registre de log a disc en el COMMIT per poder refer els canvis."},
+  {"id": "n3_q3", "level": 3, "src": "Act 3", "q": "Sota REPEATABLE READ estàndard teòric, quin fenomen pot aparèixer encara quan una altra sessió insereix files noves?", "options": ["Lectura bruta de valors no confirmats", "Pèrdua silenciosa del registre transaccional", "Modificació d'una fila ja llegida prèviament", "Files fantasma en repetir una consulta per rang"], "correct": 3, "why": "REPEATABLE READ bloqueja les files ja llegides, però noves insercions que entrin al WHERE poden aparèixer com a files fantasma."},
+  {"id": "n3_q4", "level": 3, "src": "Act 3", "q": "Si fas ROLLBACK TO SAVEPOINT p1 i tot seguit tanques amb COMMIT, quin és l'estat final?", "options": ["Es descarta tota la transacció sencera des de zero", "Es desa el fet abans de p1 i el posterior al ROLLBACK", "Es confirmen també els canvis fets just després de p1", "El SAVEPOINT impedeix executar cap COMMIT posterior"], "correct": 1, "why": "El ROLLBACK parcial només descarta el tram posterior a p1; la feina prèvia a p1 continua viva i es confirma amb el COMMIT."}
+]
+
+<!-- @slot xuleta -->
+<table>
+  <thead><tr><th>Lletra</th><th>Propietat</th><th>Mecanisme i Trampa Clau</th></tr></thead>
+  <tbody>
+    <tr><td><strong>A</strong></td><td>Atomicitat</td><td>Tot o res (<code>COMMIT</code> / <code>ROLLBACK</code>). Transacció oberta sense tancar bloqueja altres sessions.</td></tr>
+    <tr><td><strong>C</strong></td><td>Consistència</td><td>Respecta totes les claus, tipus i regles abans i després de la transacció.</td></tr>
+    <tr><td><strong>I</strong></td><td>Aïllament</td><td>Controla <em>Dirty Read</em>, <em>Non-Repeatable Read</em> i <em>Phantom Read</em> segons el nivell d'aïllament.</td></tr>
+    <tr><td><strong>D</strong></td><td>Durabilitat</td><td><code>WAL</code> (<em>Write-Ahead Log</em>) garanteix que tot <code>COMMIT</code> sobreviu a una caiguda elèctrica.</td></tr>
+  </tbody>
+</table>

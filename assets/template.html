@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fbf7ec; --surface: #fffdf7; --surface-low: #f4eedb; --surface-code: #ede5cf;
+      --border: #dfd6bc; --border-strong: #8a7e63; --ink: #1f2421; --ink-muted: #5a5549;
+      --accent: #8c5214; --accent-soft: #f3e6cf; --on-accent: #ffffff;
+      --ok: #146c53; --ok-bg: #dcf3ea; --err: #b42318; --err-bg: #fee4e2;
+      --font-serif: "Times New Roman", Georgia, "Iowan Old Style", Times, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      --sidebar-w: 272px; --radius: 8px;
+    }
+    html[data-theme="dark"] {
+      --bg: #141310; --surface: #1d1b17; --surface-low: #26231d; --surface-code: #2c2821;
+      --border: #3a342a; --border-strong: #7e7360; --ink: #ede8dc; --ink-muted: #aba392;
+      --accent: #e5a94c; --accent-soft: #2e2414; --on-accent: #1d1b17;
+      --ok: #4ade80; --ok-bg: #132c1f; --err: #fb7185; --err-bg: #33161b;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.65; transition: background-color 180ms ease, color 180ms ease; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .skip-link { position: absolute; left: -9999px; top: 8px; z-index: 60; padding: 8px 14px; background: var(--accent); color: var(--on-accent); border-radius: var(--radius); font-weight: 600; text-decoration: none; }
+    .skip-link:focus { left: 12px; }
+    h1, h2, h3, h4 { font-family: var(--font-serif); color: var(--ink); margin: 0 0 12px; line-height: 1.2; }
+    h1 { font-size: clamp(30px, 4vw, 42px); }
+    h2 { font-size: 26px; }
+    h3 { font-size: 20px; margin-top: 22px; }
+    p, li { max-width: 72ch; }
+    p { margin: 0 0 12px; }
+    ul, ol { padding-left: 22px; margin: 0 0 12px; }
+    a { color: var(--accent); }
+    code { font-family: var(--font-mono); font-size: 13px; background: var(--surface-code); padding: 2px 6px; border-radius: 5px; }
+    pre { font-family: var(--font-mono); font-size: 13px; background: var(--surface-code); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; overflow-x: auto; line-height: 1.5; margin: 0 0 14px; }
+    pre code { background: none; padding: 0; }
+    .pre-wrap { position: relative; margin: 0 0 14px; }
+    .pre-wrap pre { margin: 0; padding-right: 78px; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; height: 26px; padding: 0 9px; background: var(--surface); color: var(--ink-muted); border: 1px solid var(--border-strong); border-radius: 5px; font-family: var(--font-body); font-size: 11px; font-weight: 600; cursor: pointer; }
+    .copy-btn:hover { border-color: var(--accent); color: var(--ink); background: var(--accent-soft); }
+    .muted { color: var(--ink-muted); }
+    .src-tag { display: inline-block; font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; color: var(--ink-muted); background: var(--surface-low); border: 1px solid var(--border); border-radius: 4px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
+
+    .shell { display: flex; min-height: 100vh; }
+    .sidebar { width: var(--sidebar-w); flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--surface-low); border-right: 1px solid var(--border); padding: 18px 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; transition: margin-left 200ms ease, opacity 180ms ease; z-index: 40; }
+    body.sidebar-collapsed .sidebar { margin-left: calc(var(--sidebar-w) * -1); opacity: 0; pointer-events: none; visibility: hidden; }
+    .sidebar-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); z-index: 35; }
+    .sidebar-head { padding: 4px 8px 12px; border-bottom: 1px solid var(--border); font-family: var(--font-serif); font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .close-sidebar { display: none; height: 30px; padding: 0 9px; font-size: 13px; }
+    .nav-filter { width: 100%; height: 34px; margin-top: 10px; padding: 0 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--border-strong); border-radius: 6px; font-family: var(--font-body); font-size: 13px; }
+    .nav-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 2px; }
+    .nav-empty { font-size: 13px; margin: 10px 8px 0; }
+    .nav-link { display: block; padding: 8px 12px; border-radius: var(--radius); text-decoration: none; color: var(--ink-muted); font-size: 14px; font-weight: 500; border-left: 3px solid transparent; transition: background-color 150ms ease, color 150ms ease; }
+    .nav-link.sub { padding: 5px 12px 5px 24px; font-size: 13px; font-weight: 400; }
+    .nav-link:hover, .nav-link.active { background: var(--surface); color: var(--ink); border-left-color: var(--accent); }
+    .sidebar-foot { padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--ink-muted); }
+
+    .main-col { flex: 1; min-width: 0; }
+    .topbar { position: sticky; top: 0; z-index: 20; height: 58px; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .topbar-left, .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .topbar-meta { font-size: 13px; color: var(--ink-muted); font-weight: 500; }
+    .btn { height: 36px; padding: 0 12px; background: var(--surface); color: var(--ink); border: 1px solid var(--border-strong); border-radius: var(--radius); font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease; }
+    .btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .btn.primary:hover { filter: brightness(1.08); }
+    .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+
+    .content-wrap { max-width: 940px; margin: 0 auto; padding: 28px 24px 64px; display: grid; gap: 24px; }
+    .block { display: grid; gap: 24px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px 28px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .summary-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 16px; }
+    .pill-box { background: var(--surface-low); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; }
+    .pill-label { display: block; font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; border: 1px solid var(--border); }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+    th { background: var(--surface-low); font-family: var(--font-serif); font-size: 15px; }
+    .callout { border-left: 4px solid var(--accent); background: var(--surface-low); border-radius: var(--radius); padding: 14px 18px; margin: 14px 0; }
+    .callout.trap { border-left-color: var(--err); background: var(--err-bg); }
+    .callout.trap strong:first-child { color: var(--err); }
+    details.oral-check { border: 1px solid var(--border-strong); border-left: 4px solid var(--accent); border-radius: var(--radius); background: var(--surface-low); padding: 12px 16px; margin: 12px 0; }
+    details.oral-check summary { font-weight: 600; cursor: pointer; color: var(--ink); }
+    details.oral-check .oral-ans { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-strong); font-size: 14px; }
+    figure.diagram { margin: 14px 0; }
+    figure.diagram figcaption { font-size: 12px; color: var(--ink-muted); margin-top: 6px; }
+    svg text { font-family: var(--font-body); }
+
+    .exercise { border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-top: 14px; background: var(--bg); }
+    .exercise > strong:first-child { display: block; margin-bottom: 6px; }
+    .chip-bank { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .chip { padding: 6px 12px; background: var(--surface-low); border: 1px solid var(--border-strong); border-radius: var(--radius); font-family: var(--font-mono); font-size: 13px; cursor: grab; user-select: none; }
+    .chip.used { opacity: 0.78; border-style: dashed; }
+    .chip:hover, .chip.selected { opacity: 1; background: var(--accent); border-style: solid; border-color: var(--accent); color: var(--on-accent); }
+    .slot { display: inline-flex; align-items: center; min-width: 130px; height: 32px; padding: 0 10px; border: 1.5px dashed var(--accent); border-radius: 6px; background: var(--surface); font-family: var(--font-mono); font-size: 13px; vertical-align: middle; cursor: pointer; }
+    .slot.over { background: var(--accent-soft); }
+    .field { height: 36px; min-width: min(200px, 100%); max-width: 100%; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 6px; font-family: var(--font-mono); font-size: 14px; color: var(--ink); padding: 0 10px; }
+    .ex-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .ok { border-style: solid !important; border-color: var(--ok) !important; background: var(--ok-bg) !important; color: var(--ok) !important; }
+    .err { border-style: solid !important; border-color: var(--err) !important; background: var(--err-bg) !important; color: var(--err) !important; }
+    .feedback { margin-top: 10px; font-size: 13px; font-weight: 600; min-height: 20px; }
+    .feedback.good { color: var(--ok); }
+    .feedback.bad { color: var(--err); }
+
+    .quiz-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0 14px; }
+    .level-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+    .level-tab { padding: 8px 15px; background: var(--surface-low); border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-weight: 600; color: var(--ink-muted); cursor: pointer; }
+    .level-tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .quiz-score { font-size: 13px; font-weight: 600; color: var(--ink-muted); margin-bottom: 12px; }
+    .quiz-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .quiz-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); padding: 16px; margin-bottom: 14px; }
+    .quiz-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .quiz-q { font-weight: 600; font-size: 15px; }
+    .quiz-opts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .quiz-opt { padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; text-align: left; font-family: var(--font-body); font-size: 14px; color: var(--ink); cursor: pointer; }
+    .quiz-opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+    .quiz-opt:disabled { cursor: default; }
+    .quiz-why { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--surface); font-size: 13px; color: var(--ink-muted); }
+
+    @media (max-width: 860px) {
+      .sidebar { position: fixed; left: 0; }
+      .close-sidebar { display: inline-flex; align-items: center; }
+      .quiz-opts { grid-template-columns: 1fr; }
+      .topbar-meta, #btnPrintFull { display: none; }
+      .card { padding: 20px; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+    @media print {
+      :root, html[data-theme="dark"] {
+        --bg: #ffffff; --surface: #ffffff; --surface-low: #f4f4f4; --surface-code: #f4f4f4;
+        --border: #cccccc; --border-strong: #888888; --ink: #111111; --ink-muted: #444444;
+        --accent: #8c5214; --on-accent: #ffffff; --ok: #146c53; --err: #b42318;
+      }
+      .sidebar, .sidebar-backdrop, .topbar, .skip-link, #practica, #autoavaluacio, .copy-btn, .no-print { display: none !important; }
+      body:not(.print-full) #teoria, body:not(.print-full) #inici > p { display: none !important; }
+      html, body { background: #ffffff !important; color: #111111 !important; font-size: 13px; line-height: 1.45; }
+      .content-wrap { max-width: 100%; padding: 0; gap: 10px; }
+      .card { border: 1px solid #cccccc !important; background: #ffffff !important; padding: 12px 14px; }
+      tr, .callout, figure.diagram, .quiz-card { break-inside: avoid; }
+      h1 { font-size: 22px; margin-bottom: 6px; }
+      h2 { font-size: 18px; margin-bottom: 6px; }
+      th, td { padding: 6px 9px; font-size: 12px; }
+      pre, code { background: #f4f4f4 !important; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#mainContent">{{ui.skipToContent}}</a>
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="{{ui.index}}">
+    <div>
+      <div class="sidebar-head">
+        <span>{{ui.index}}</span>
+        <button class="btn close-sidebar" type="button" id="btnCloseIndex" aria-label="{{ui.closeIndex}}">✕</button>
+      </div>
+      <input class="nav-filter" id="navFilter" type="search" placeholder="{{ui.filterPlaceholder}}" aria-label="{{ui.filterPlaceholder}}">
+      <nav aria-label="{{ui.index}}">
+        <ul class="nav-list" id="navList">
+{{NAV}}
+        </ul>
+      </nav>
+      <p class="muted nav-empty" id="navEmpty" hidden>{{ui.noMatches}}</p>
+    </div>
+    <div class="sidebar-foot">{{SIDEBAR_FOOT}}</div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+  <div class="main-col">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="btn" type="button" id="btnToggleIndex" aria-expanded="true" aria-controls="sidebar">☰ {{ui.index}}</button>
+        <span class="topbar-meta">{{TOPBAR_META}}</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn" type="button" id="btnTheme" aria-pressed="false">🌙 {{ui.dark}}</button>
+        <button class="btn" type="button" id="btnPrint">🖨️ {{ui.print}}</button>
+        <button class="btn" type="button" id="btnPrintFull">📄 {{ui.printFull}}</button>
+      </div>
+    </header>
+
+    <main class="content-wrap" id="mainContent">
+      <section class="card" id="inici">
+<!-- @slot-begin:hero -->
+{{slot.hero}}
+<!-- @slot-end:hero -->
+      </section>
+
+      <div class="block" id="teoria">
+<!-- @slot-begin:teoria -->
+{{slot.teoria}}
+<!-- @slot-end:teoria -->
+      </div>
+
+      <section class="card" id="practica">
+        <div class="eyebrow">{{ui.practiceEyebrow}}</div>
+        <h2>{{ui.practiceTitle}}</h2>
+<!-- @slot-begin:practica -->
+{{slot.practica}}
+<!-- @slot-end:practica -->
+      </section>
+
+      <section class="card" id="autoavaluacio">
+        <div class="eyebrow">{{ui.quizEyebrow}}</div>
+        <h2>{{ui.quizTitle}}</h2>
+        <div class="quiz-toolbar">
+          <div class="level-tabs" role="tablist">
+            <button class="level-tab" type="button" role="tab" data-lvl="1" aria-selected="true">{{ui.level1}}</button>
+            <button class="level-tab" type="button" role="tab" data-lvl="2" aria-selected="false">{{ui.level2}}</button>
+            <button class="level-tab" type="button" role="tab" data-lvl="3" aria-selected="false">{{ui.level3}}</button>
+          </div>
+          <div class="quiz-actions">
+            <button class="btn" type="button" id="btnOnlyWrong" aria-pressed="false">{{ui.onlyWrong}}</button>
+            <button class="btn" type="button" id="btnResetQuiz">{{ui.reset}}</button>
+          </div>
+        </div>
+        <div class="quiz-score" id="quizScore" aria-live="polite"></div>
+        <div id="quizHost"></div>
+      </section>
+
+      <section class="card" id="xuleta">
+        <div class="eyebrow">{{ui.sheetEyebrow}}</div>
+        <h2>{{ui.sheetTitle}}</h2>
+<!-- @slot-begin:xuleta -->
+{{slot.xuleta}}
+<!-- @slot-end:xuleta -->
+      </section>
+    </main>
+  </div>
+</div>
+
+<script type="application/json" id="guide-meta">{{META_JSON}}</script>
+<script type="application/json" id="quiz-data">{{QUIZ_JSON}}</script>
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const META = JSON.parse($('#guide-meta').textContent);
+  const UI = META.ui;
+  const KEY = META.storageKey;
+  const load = () => {
+    try {
+      const p = JSON.parse(localStorage.getItem(KEY));
+      return p && typeof p === 'object' && !Array.isArray(p) ? p : {};
+    } catch (e) { return {}; }
+  };
+  const save = patch => { try { localStorage.setItem(KEY, JSON.stringify(Object.assign(load(), patch))); } catch (e) {} };
+  const norm = s => String(s).trim().toLowerCase().replace(/\s+/g, ' ');
+
+  function el(tag, props = {}, children = []) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(props)) {
+      if (k === 'className') node.className = v;
+      else if (k === 'text') node.textContent = v;
+      else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v);
+    }
+    for (const ch of [].concat(children)) if (ch != null) node.append(ch);
+    return node;
+  }
+
+  // Index sidebar, search filter (/), mobile backdrop & Escape, theme & dual-mode print
+  const sidebar = $('#sidebar');
+  const backdrop = $('#sidebarBackdrop');
+  const btnIndex = $('#btnToggleIndex');
+  const mobile = window.matchMedia('(max-width: 860px)');
+  const setCollapsed = c => {
+    document.body.classList.toggle('sidebar-collapsed', c);
+    btnIndex.setAttribute('aria-expanded', String(!c));
+    if ('inert' in sidebar) sidebar.inert = c;
+    backdrop.hidden = c || !mobile.matches;
+  };
+  setCollapsed(mobile.matches);
+  btnIndex.addEventListener('click', () => setCollapsed(!document.body.classList.contains('sidebar-collapsed')));
+  $('#btnCloseIndex').addEventListener('click', () => setCollapsed(true));
+  backdrop.addEventListener('click', () => setCollapsed(true));
+  $$('.nav-link').forEach(a => a.addEventListener('click', () => { if (mobile.matches) setCollapsed(true); }));
+
+  const navFilter = $('#navFilter');
+  const navEmpty = $('#navEmpty');
+  navFilter.addEventListener('input', () => {
+    const q = norm(navFilter.value);
+    let visible = 0;
+    $$('#navList li').forEach(li => {
+      const show = !q || norm(li.textContent).includes(q);
+      li.hidden = !show;
+      if (show) visible++;
+    });
+    navEmpty.hidden = visible > 0;
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && mobile.matches && !document.body.classList.contains('sidebar-collapsed')) {
+      setCollapsed(true);
+      btnIndex.focus();
+      return;
+    }
+    if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) && !document.activeElement?.isContentEditable) {
+      e.preventDefault();
+      setCollapsed(false);
+      navFilter.focus();
+    }
+  });
+
+  const btnTheme = $('#btnTheme');
+  const applyTheme = t => {
+    document.documentElement.setAttribute('data-theme', t);
+    btnTheme.textContent = t === 'dark' ? '☀️ ' + UI.light : '🌙 ' + UI.dark;
+    btnTheme.setAttribute('aria-pressed', String(t === 'dark'));
+    save({ theme: t });
+  };
+  if (load().theme === 'dark') applyTheme('dark');
+  btnTheme.addEventListener('click', () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+  const printGuide = full => {
+    document.body.classList.toggle('print-full', full);
+    window.print();
+  };
+  $('#btnPrint').addEventListener('click', () => printGuide(false));
+  $('#btnPrintFull').addEventListener('click', () => printGuide(true));
+  window.addEventListener('afterprint', () => document.body.classList.remove('print-full'));
+
+  // 1-click Copy button on theory & cheat-sheet <pre> blocks
+  $$('#teoria pre, #xuleta pre').forEach(pre => {
+    const wrap = el('div', { className: 'pre-wrap' });
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.append(pre);
+    const btn = el('button', { type: 'button', className: 'copy-btn', text: UI.copy });
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(pre.textContent.trim());
+        btn.textContent = UI.copied;
+        setTimeout(() => { btn.textContent = UI.copy; }, 1400);
+      } catch (e) {}
+    });
+    wrap.append(btn);
+  });
+
+  // Scroll-spy over full target cards/sections
+  const links = $$('.nav-link');
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + en.target.id));
+    });
+  }, { rootMargin: '-18% 0px -65% 0px' });
+  links.forEach(l => { const t = document.getElementById(l.getAttribute('href').slice(1)); if (t) spy.observe(t); });
+
+  // Bloc 2 · exercises (.chip[data-val] + .slot[data-ans] | input/select[data-ans]) + auto Reset + Enter key
+  let picked = null;
+  $$('.exercise').forEach(ex => {
+    const chips = $$('.chip', ex);
+    const slots = $$('.slot', ex);
+    const inputs = $$('input[data-ans], select[data-ans]', ex);
+    const syncUsed = () => {
+      const placed = new Set(slots.map(s => norm(s.textContent)).filter(Boolean));
+      chips.forEach(c => c.classList.toggle('used', placed.has(norm(c.dataset.val))));
+    };
+    chips.forEach(c => {
+      c.draggable = true; c.tabIndex = 0; c.setAttribute('role', 'button'); c.setAttribute('aria-pressed', 'false');
+      c.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', c.dataset.val));
+      const pick = () => {
+        const on = picked !== c;
+        $$('.chip.selected').forEach(x => { x.classList.remove('selected'); x.setAttribute('aria-pressed', 'false'); });
+        picked = on ? c : null;
+        if (on) { c.classList.add('selected'); c.setAttribute('aria-pressed', 'true'); }
+      };
+      c.addEventListener('click', pick);
+      c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+    slots.forEach((s, idx) => {
+      s.tabIndex = 0; s.setAttribute('role', 'button');
+      if (!s.hasAttribute('aria-label')) s.setAttribute('aria-label', `Slot ${idx + 1}`);
+      const fill = v => { s.classList.remove('ok', 'err'); s.textContent = v; syncUsed(); };
+      const place = () => {
+        if (picked && ex.contains(picked)) {
+          fill(picked.dataset.val);
+          picked.classList.remove('selected');
+          picked.setAttribute('aria-pressed', 'false');
+          picked = null;
+        } else if (s.textContent) fill('');
+      };
+      s.addEventListener('dragover', e => { e.preventDefault(); s.classList.add('over'); });
+      s.addEventListener('dragleave', () => s.classList.remove('over'));
+      s.addEventListener('drop', e => {
+        e.preventDefault(); s.classList.remove('over');
+        if (picked) { picked.classList.remove('selected'); picked.setAttribute('aria-pressed', 'false'); picked = null; }
+        fill(e.dataTransfer.getData('text/plain'));
+      });
+      s.addEventListener('click', place);
+      s.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); place(); } });
+    });
+    const btn = $('.check', ex);
+    const fb = $('.feedback', ex);
+    if (fb) fb.setAttribute('role', 'status');
+    if (!btn || !fb) return;
+    const validate = () => {
+      const fields = slots.concat(inputs);
+      let ok = 0;
+      fields.forEach(f => {
+        const val = norm(f.classList.contains('slot') ? f.textContent : f.value);
+        const good = Boolean(val) && f.dataset.ans.split('|').some(a => norm(a) === val);
+        f.classList.remove('ok', 'err');
+        f.classList.add(good ? 'ok' : 'err');
+        if (good) ok++;
+      });
+      const all = ok === fields.length;
+      fb.className = 'feedback ' + (all ? 'good' : 'bad');
+      fb.textContent = all
+        ? (ex.dataset.ok || UI.allCorrect)
+        : `${ok} / ${fields.length} ${UI.correctCount}` + (ex.dataset.hint ? ` · ${UI.hint}: ${ex.dataset.hint}` : '');
+    };
+    btn.addEventListener('click', validate);
+    inputs.forEach(inp => {
+      if (inp.tagName === 'INPUT') inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); validate(); } });
+    });
+    const actions = el('div', { className: 'ex-actions' });
+    btn.parentNode.insertBefore(actions, btn);
+    const resetBtn = el('button', { type: 'button', className: 'btn', text: UI.resetEx });
+    resetBtn.addEventListener('click', () => {
+      slots.forEach(s => { s.textContent = ''; s.classList.remove('ok', 'err'); });
+      inputs.forEach(i => {
+        if (i.tagName === 'SELECT') i.selectedIndex = 0; else i.value = '';
+        i.classList.remove('ok', 'err');
+      });
+      fb.className = 'feedback'; fb.textContent = '';
+      syncUsed();
+    });
+    actions.append(btn, resetBtn);
+  });
+
+  // Bloc 3 · 3-level quiz with stable session order, persistent answers, active error retry, /10 grade & source badges
+  const QUIZ = JSON.parse($('#quiz-data').textContent);
+  const host = $('#quizHost');
+  const scoreEl = $('#quizScore');
+  const btnOnlyWrong = $('#btnOnlyWrong');
+  const initial = load();
+  const wrong = new Set(initial.wrongIds || []);
+  const answered = Object.assign({}, initial.answered || {});
+  const orderCache = new Map();
+  let level = 1;
+  let onlyWrong = false;
+
+  const getOrder = q => {
+    if (!orderCache.has(q.id)) {
+      const arr = q.options.map((txt, origIdx) => ({ txt, origIdx, isCorrect: origIdx === q.correct }));
+      for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+      orderCache.set(q.id, arr);
+    }
+    return orderCache.get(q.id);
+  };
+
+  function updateScore() {
+    const ids = QUIZ.filter(q => q.level === level).map(q => q.id);
+    const ok = ids.filter(id => answered[id]?.ok === true).length;
+    const done = ids.filter(id => id in answered).length;
+    const totalOk = QUIZ.filter(q => answered[q.id]?.ok === true).length;
+    const pending = ids.filter(id => wrong.has(id)).length;
+    const grade = ids.length ? ((ok / ids.length) * 10).toFixed(1) : '0.0';
+    scoreEl.textContent = `${UI.score}: ${ok} / ${done} (${ids.length}) · ${UI.grade}: ${grade}/10 · ${UI.globalScore}: ${totalOk} / ${QUIZ.length} · ${UI.toReview}: ${pending}`;
+  }
+
+  function render() {
+    host.replaceChildren();
+    const subset = QUIZ.filter(q => q.level === level && (!onlyWrong || wrong.has(q.id)));
+    if (!subset.length) host.append(el('p', { className: 'muted', text: onlyWrong ? UI.noWrong : UI.empty }));
+    subset.forEach((q, n) => {
+      const retryMode = onlyWrong && answered[q.id]?.ok === false;
+      if (retryMode) orderCache.delete(q.id);
+      const opts = getOrder(q);
+      const prev = retryMode ? null : answered[q.id];
+      const why = el('div', { className: 'quiz-why', text: q.why || '' });
+      why.hidden = !prev;
+      const wrap = el('div', { className: 'quiz-opts' });
+      opts.forEach((o, pos) => {
+        const baseLabel = `${String.fromCharCode(65 + pos)}) ${o.txt}`;
+        const b = el('button', { type: 'button', className: 'quiz-opt', text: baseLabel });
+        if (prev) {
+          b.disabled = true;
+          if (o.isCorrect) { b.classList.add('ok'); b.textContent = `✓ ${baseLabel}`; }
+          else if (prev.pickedIdx === o.origIdx) { b.classList.add('err'); b.textContent = `✗ ${baseLabel}`; }
+        }
+        b.addEventListener('click', () => {
+          Array.from(wrap.children).forEach((bb, i) => {
+            bb.disabled = true;
+            if (opts[i].isCorrect) { bb.classList.add('ok'); if (!bb.textContent.startsWith('✓ ')) bb.textContent = `✓ ${bb.textContent}`; }
+          });
+          if (!o.isCorrect) { b.classList.add('err'); b.textContent = `✗ ${baseLabel}`; }
+          answered[q.id] = { pickedIdx: o.origIdx, ok: o.isCorrect };
+          if (o.isCorrect) wrong.delete(q.id); else wrong.add(q.id);
+          save({ answered, wrongIds: Array.from(wrong) });
+          why.hidden = false;
+          updateScore();
+        });
+        wrap.append(b);
+      });
+      const head = el('div', { className: 'quiz-head' }, [
+        el('div', { className: 'quiz-q', text: `${n + 1}. ${q.q}` }),
+        q.src ? el('span', { className: 'src-tag', text: q.src }) : null,
+      ]);
+      host.append(el('div', { className: 'quiz-card' }, [head, wrap, why]));
+    });
+    updateScore();
+  }
+
+  $$('.level-tab').forEach(tab => tab.addEventListener('click', () => {
+    $$('.level-tab').forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+    level = Number(tab.dataset.lvl);
+    render();
+  }));
+  btnOnlyWrong.addEventListener('click', () => {
+    onlyWrong = !onlyWrong;
+    btnOnlyWrong.setAttribute('aria-pressed', String(onlyWrong));
+    render();
+  });
+  $('#btnResetQuiz').addEventListener('click', () => {
+    QUIZ.filter(q => q.level === level).forEach(q => { delete answered[q.id]; wrong.delete(q.id); orderCache.delete(q.id); });
+    save({ answered, wrongIds: Array.from(wrong) });
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>
