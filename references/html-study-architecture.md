@@ -32,7 +32,7 @@ Set `"themePreset"` inside `<!-- @slot meta -->`:
    }
    ```
    - Built-in `UI_DEFAULTS` languages: `en`, `es`, `ca`, `fr`, `de`, `pt`, `it`.
-   - Any label can be overridden via `"ui": {...}` (`index`, `closeIndex`, `skipToContent`, `filterPlaceholder`, `noMatches`, `dark`, `light`, `print`, `printFull`, `copy`, `copied`, `resetEx`, `start`, `theory`, `practice`, `quiz`, `sheet`, `practiceEyebrow`, `practiceTitle`, `quizEyebrow`, `quizTitle`, `sheetEyebrow`, `sheetTitle`, `level1`, `level2`, `level3`, `onlyWrong`, `reset`, `examMode`, `submitExam`, `timeLeft`, `exportAnki`, `score`, `grade`, `globalScore`, `toReview`, `noWrong`, `empty`, `allCorrect`, `correctCount`, `hint`).
+   - Any label can be overridden via `"ui": {...}` (`index`, `closeIndex`, `skipToContent`, `filterPlaceholder`, `noMatches`, `dark`, `light`, `print`, `printFull`, `copy`, `copied`, `resetEx`, `start`, `theory`, `practice`, `quiz`, `sheet`, `practiceEyebrow`, `practiceTitle`, `quizEyebrow`, `quizTitle`, `sheetEyebrow`, `sheetTitle`, `level1`, `level2`, `level3`, `onlyWrong`, `reset`, `examMode`, `submitExam`, `timeLeft`, `exportAnki`, `exportProgress`, `exportProgressHint`, `progressCopied`, `progressSaved`, `score`, `grade`, `globalScore`, `toReview`, `noWrong`, `empty`, `allCorrect`, `correctCount`, `hint`).
 2. **`<!-- @slot hero -->`** (HTML): `.eyebrow`, `<h1>`, concise intro `<p>`, `.summary-strip > .pill-box > .pill-label + strong`.
 3. **`<!-- @slot teoria -->`** (HTML — **Block 1**):
    - Wrap each subtopic in `<section class="card" id="t-slug">` with `<h2 id="h-slug">Title</h2>`.
@@ -51,10 +51,11 @@ Set `"themePreset"` inside `<!-- @slot meta -->`:
    [{"id": "n1_q1", "level": 1, "src": "Unit 1", "q": "Question...", "options": ["A", "B", "C", "D"], "correct": 2, "why": "Rule proving C is correct, and why the primary distractor fails."}]
    ```
    - Supports **Timed Exam Mode** (`1 min/question`, hides answers until submit, grades `/10`) and **Anki `.tsv` export**.
+   - **Progress for AI** button: copies (or, if the clipboard is blocked, downloads as `.txt`) a plain-text `=== STUDY-GUIDES PROGRESS v1 ===` report with per-level scores, every missed question (with the option the student chose and the correct one), unanswered IDs and solved practice exercises. Students paste it back into the chat to trigger *Review mode* in `SKILL.md`. Give questions stable, meaningful `id`s and fill `src`, because both appear in the report.
 6. **`<!-- @slot xuleta -->`** (HTML — **Block 4**): pure-HTML A4 tables and checklists.
 
 ### Reserved Template IDs (do not reuse inside slots)
-`mainContent`, `inici`, `teoria`, `practica`, `autoavaluacio`, `xuleta`, `sidebar`, `sidebarBackdrop`, `navFilter`, `navList`, `navEmpty`, `btnToggleIndex`, `btnCloseIndex`, `btnTheme`, `themeLabel`, `examTimer`, `examTimerText`, `btnExamMode`, `btnSubmitExam`, `btnExportAnki`, `quizScore`, `quizHost`, `btnOnlyWrong`, `btnResetQuiz`, `guide-meta`, `quiz-data`.
+`mainContent`, `inici`, `teoria`, `practica`, `autoavaluacio`, `xuleta`, `sidebar`, `sidebarBackdrop`, `navFilter`, `navList`, `navEmpty`, `btnToggleIndex`, `btnCloseIndex`, `btnTheme`, `themeLabel`, `examTimer`, `examTimerText`, `btnExamMode`, `btnSubmitExam`, `btnExportAnki`, `btnExportProgress`, `exportProgressLabel`, `quizScore`, `quizHost`, `btnOnlyWrong`, `btnResetQuiz`, `guide-meta`, `quiz-data`.
 
 ---
 

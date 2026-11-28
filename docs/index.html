@@ -359,6 +359,7 @@ COMMIT;</code></pre>
             <button class="btn" type="button" id="btnExamMode" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6"/></svg><span>Exam mode</span></button>
             <button class="btn primary" type="button" id="btnSubmitExam" hidden>Submit exam</button>
             <button class="btn" type="button" id="btnExportAnki"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Anki (.tsv)</span></button>
+            <button class="btn" type="button" id="btnExportProgress" title="Copy a summary of your mistakes to paste back to the AI so it can build a targeted review"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2M9 13l2 2 4-4"/></svg><span id="exportProgressLabel">Progress for AI</span></button>
             <button class="btn" type="button" id="btnOnlyWrong" aria-pressed="false">Review mistakes only</button>
             <button class="btn" type="button" id="btnResetQuiz">Reset level</button>
           </div>
@@ -386,7 +387,7 @@ COMMIT;</code></pre>
   </div>
 </div>
 
-<script type="application/json" id="guide-meta">{"lang": "en", "themePreset": "warm-serif", "title": "Study Guide · Database Transactions & ACID Guarantees", "topbarMeta": "Computer Science · Databases · Unit 3", "storageKey": "study_cs_acid_v1", "sidebarFoot": "Canonical Example · Master Professor Method", "ui": {"index": "Contents", "closeIndex": "Close contents", "skipToContent": "Skip to content", "filterPlaceholder": "Filter sections (/)...", "noMatches": "No matches.", "dark": "Dark mode", "light": "Light mode", "print": "A4 cheat-sheet", "printFull": "Full guide", "copy": "Copy", "copied": "Copied ✓", "resetEx": "Reset", "start": "Start", "theory": "Teacher's explanation", "practice": "Fill-in practice", "quiz": "Self-assessment I · II · III", "sheet": "A4 cheat-sheet", "practiceEyebrow": "Block 2 · Practice", "practiceTitle": "Fill-in activities", "quizEyebrow": "Block 3 · Progressive self-assessment", "quizTitle": "3-level quiz", "sheetEyebrow": "Block 4 · A4 print", "sheetTitle": "Teacher's cheat-sheet", "level1": "Level I · Foundations", "level2": "Level II · Application", "level3": "Level III · Mastery", "onlyWrong": "Review mistakes only", "reset": "Reset level", "examMode": "Exam mode", "submitExam": "Submit exam", "timeLeft": "Time left", "exportAnki": "Anki (.tsv)", "score": "Level", "grade": "Score", "globalScore": "Total", "toReview": "To review", "noWrong": "No pending mistakes in this level.", "empty": "No questions in this level.", "allCorrect": "All correct.", "correctCount": "correct", "hint": "Hint"}}</script>
+<script type="application/json" id="guide-meta">{"lang": "en", "themePreset": "warm-serif", "title": "Study Guide · Database Transactions & ACID Guarantees", "topbarMeta": "Computer Science · Databases · Unit 3", "storageKey": "study_cs_acid_v1", "sidebarFoot": "Canonical Example · Master Professor Method", "ui": {"index": "Contents", "closeIndex": "Close contents", "skipToContent": "Skip to content", "filterPlaceholder": "Filter sections (/)...", "noMatches": "No matches.", "dark": "Dark mode", "light": "Light mode", "print": "A4 cheat-sheet", "printFull": "Full guide", "copy": "Copy", "copied": "Copied ✓", "resetEx": "Reset", "start": "Start", "theory": "Teacher's explanation", "practice": "Fill-in practice", "quiz": "Self-assessment I · II · III", "sheet": "A4 cheat-sheet", "practiceEyebrow": "Block 2 · Practice", "practiceTitle": "Fill-in activities", "quizEyebrow": "Block 3 · Progressive self-assessment", "quizTitle": "3-level quiz", "sheetEyebrow": "Block 4 · A4 print", "sheetTitle": "Teacher's cheat-sheet", "level1": "Level I · Foundations", "level2": "Level II · Application", "level3": "Level III · Mastery", "onlyWrong": "Review mistakes only", "reset": "Reset level", "examMode": "Exam mode", "submitExam": "Submit exam", "timeLeft": "Time left", "exportAnki": "Anki (.tsv)", "score": "Level", "grade": "Score", "globalScore": "Total", "toReview": "To review", "noWrong": "No pending mistakes in this level.", "empty": "No questions in this level.", "allCorrect": "All correct.", "correctCount": "correct", "hint": "Hint", "exportProgress": "Progress for AI", "exportProgressHint": "Copy a summary of your mistakes to paste back to the AI so it can build a targeted review", "progressCopied": "Copied: paste it in the chat ✓", "progressSaved": "Saved .txt: paste it in the chat ✓"}}</script>
 <script type="application/json" id="quiz-data">[
   {
     "id": "n1_q1",
@@ -931,6 +932,55 @@ COMMIT;</code></pre>
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  // Progress report for the AI tutor: a compact plain-text summary the student pastes back into the chat,
+  // so the next guide can target exactly the concepts they got wrong (closes the study loop).
+  $('#btnExportProgress').addEventListener('click', async () => {
+    const flat = s => String(s).replace(/\s+/g, ' ').trim();
+    const lines = [
+      '=== STUDY-GUIDES PROGRESS v1 ===',
+      `guide: ${flat(META.title || '')}`,
+      `storageKey: ${KEY}`,
+      `lang: ${META.lang || ''}`,
+      `date: ${new Date().toISOString().slice(0, 10)}`,
+    ];
+    [1, 2, 3].forEach(lv => {
+      const qs = QUIZ.filter(q => q.level === lv);
+      const done = qs.filter(q => q.id in answered).length;
+      const ok = qs.filter(q => answered[q.id]?.ok === true).length;
+      lines.push(`level ${lv}: ${ok}/${qs.length} correct, ${done}/${qs.length} answered`);
+    });
+    const missed = QUIZ.filter(q => wrong.has(q.id));
+    lines.push('', `missed (${missed.length}):`);
+    missed.forEach(q => {
+      const pick = answered[q.id]?.pickedIdx;
+      const picked = typeof pick === 'number' && pick >= 0 ? flat(q.options[pick]) : '(no answer)';
+      lines.push(`- [${q.id} · L${q.level}${q.src ? ' · ' + flat(q.src) : ''}] ${flat(q.q)}`);
+      lines.push(`    chose: ${picked} | correct: ${flat(q.options[q.correct])}`);
+    });
+    const unanswered = QUIZ.filter(q => !(q.id in answered)).map(q => q.id);
+    lines.push('', `unanswered: ${unanswered.length ? unanswered.join(', ') : 'none'}`);
+    const exs = $$('#practica .exercise');
+    const exOk = exs.filter(ex => $('.feedback', ex)?.classList.contains('ok')).length;
+    lines.push(`practice exercises solved this session: ${exOk}/${exs.length}`);
+    lines.push('=== END PROGRESS ===');
+    const text = lines.join('\n') + '\n';
+    const label = $('#exportProgressLabel');
+    try {
+      await navigator.clipboard.writeText(text);
+      label.textContent = UI.progressCopied;
+    } catch (e) {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = el('a', { href: url, download: `${KEY}_progress.txt` });
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      label.textContent = UI.progressSaved;
+    }
+    setTimeout(() => { label.textContent = UI.exportProgress; }, 2200);
   });
 
   render();

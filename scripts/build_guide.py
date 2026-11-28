@@ -50,7 +50,8 @@ UI_DEFAULTS: Dict[str, Dict[str, str]] = {
         "examMode": "Exam mode", "submitExam": "Submit exam", "timeLeft": "Time left", "exportAnki": "Anki (.tsv)",
         "score": "Level", "grade": "Score", "globalScore": "Total", "toReview": "To review",
         "noWrong": "No pending mistakes in this level.", "empty": "No questions in this level.",
-        "allCorrect": "All correct.", "correctCount": "correct", "hint": "Hint",
+        "allCorrect": "All correct.", "correctCount": "correct", "hint": "Hint", "exportProgress": "Progress for AI", "exportProgressHint": "Copy a summary of your mistakes to paste back to the AI so it can build a targeted review",
+        "progressCopied": "Copied: paste it in the chat ✓", "progressSaved": "Saved .txt: paste it in the chat ✓",
     },
     "es": {
         "index": "Índice", "closeIndex": "Cerrar índice", "skipToContent": "Ir al contenido",
@@ -68,7 +69,8 @@ UI_DEFAULTS: Dict[str, Dict[str, str]] = {
         "examMode": "Modo examen", "submitExam": "Corregir examen", "timeLeft": "Tiempo", "exportAnki": "Anki (.tsv)",
         "score": "Nivel", "grade": "Nota", "globalScore": "Global", "toReview": "Por repasar",
         "noWrong": "Ningún error pendiente en este nivel.", "empty": "No hay preguntas en este nivel.",
-        "allCorrect": "Todo correcto.", "correctCount": "correctas", "hint": "Pista",
+        "allCorrect": "Todo correcto.", "correctCount": "correctas", "hint": "Pista", "exportProgress": "Progreso para la IA", "exportProgressHint": "Copia un resumen de tus fallos para pegarlo en el chat y que la IA prepare un repaso dirigido",
+        "progressCopied": "Copiado: pégalo en el chat ✓", "progressSaved": "Guardado .txt: pégalo en el chat ✓",
     },
     "ca": {
         "index": "Índex", "closeIndex": "Tancar índex", "skipToContent": "Ves al contingut",
@@ -86,7 +88,8 @@ UI_DEFAULTS: Dict[str, Dict[str, str]] = {
         "examMode": "Mode examen", "submitExam": "Corregir examen", "timeLeft": "Temps", "exportAnki": "Anki (.tsv)",
         "score": "Nivell", "grade": "Nota", "globalScore": "Global", "toReview": "Per repassar",
         "noWrong": "Cap error pendent en aquest nivell.", "empty": "No hi ha preguntes en aquest nivell.",
-        "allCorrect": "Tot correcte.", "correctCount": "correctes", "hint": "Pista",
+        "allCorrect": "Tot correcte.", "correctCount": "correctes", "hint": "Pista", "exportProgress": "Progrés per a la IA", "exportProgressHint": "Copia un resum dels teus errors per enganxar-lo al xat i que la IA prepari un repàs dirigit",
+        "progressCopied": "Copiat: enganxa'l al xat ✓", "progressSaved": "Desat .txt: enganxa'l al xat ✓",
     },
     "fr": {
         "index": "Sommaire", "closeIndex": "Fermer le sommaire", "skipToContent": "Aller au contenu",
@@ -104,7 +107,8 @@ UI_DEFAULTS: Dict[str, Dict[str, str]] = {
         "examMode": "Mode examen", "submitExam": "Valider l'examen", "timeLeft": "Temps", "exportAnki": "Anki (.tsv)",
         "score": "Niveau", "grade": "Note", "globalScore": "Total", "toReview": "À revoir",
         "noWrong": "Aucune erreur en attente dans ce niveau.", "empty": "Aucune question dans ce niveau.",
-        "allCorrect": "Tout est correct.", "correctCount": "correctes", "hint": "Indice",
+        "allCorrect": "Tout est correct.", "correctCount": "correctes", "hint": "Indice", "exportProgress": "Progrès pour l'IA", "exportProgressHint": "Copie un résumé de tes erreurs à coller dans le chat pour une révision ciblée",
+        "progressCopied": "Copié : colle-le dans le chat ✓", "progressSaved": "Enregistré .txt : colle-le dans le chat ✓",
     },
     "de": {
         "index": "Inhalt", "closeIndex": "Inhalt schließen", "skipToContent": "Zum Inhalt",
@@ -122,7 +126,8 @@ UI_DEFAULTS: Dict[str, Dict[str, str]] = {
         "examMode": "Prüfungsmodus", "submitExam": "Abgeben", "timeLeft": "Restzeit", "exportAnki": "Anki (.tsv)",
         "score": "Stufe", "grade": "Note", "globalScore": "Gesamt", "toReview": "Zu wiederholen",
         "noWrong": "Keine offenen Fehler in dieser Stufe.", "empty": "Keine Fragen in dieser Stufe.",
-        "allCorrect": "Alles richtig.", "correctCount": "richtig", "hint": "Hinweis",
+        "allCorrect": "Alles richtig.", "correctCount": "richtig", "hint": "Hinweis", "exportProgress": "Fortschritt für die KI", "exportProgressHint": "Kopiert eine Fehlerübersicht zum Einfügen in den Chat für eine gezielte Wiederholung",
+        "progressCopied": "Kopiert: im Chat einfügen ✓", "progressSaved": "Als .txt gespeichert: im Chat einfügen ✓",
     },
     "pt": {
         "index": "Índice", "closeIndex": "Fechar índice", "skipToContent": "Ir para o conteúdo",
@@ -140,7 +145,8 @@ UI_DEFAULTS: Dict[str, Dict[str, str]] = {
         "examMode": "Modo exame", "submitExam": "Corrigir exame", "timeLeft": "Tempo", "exportAnki": "Anki (.tsv)",
         "score": "Nível", "grade": "Nota", "globalScore": "Global", "toReview": "Para rever",
         "noWrong": "Nenhum erro pendente neste nível.", "empty": "Sem perguntas neste nível.",
-        "allCorrect": "Tudo correto.", "correctCount": "corretas", "hint": "Dica",
+        "allCorrect": "Tudo correto.", "correctCount": "corretas", "hint": "Dica", "exportProgress": "Progresso para a IA", "exportProgressHint": "Copia um resumo dos teus erros para colar no chat e a IA preparar uma revisão dirigida",
+        "progressCopied": "Copiado: cola no chat ✓", "progressSaved": "Guardado .txt: cola no chat ✓",
     },
     "it": {
         "index": "Indice", "closeIndex": "Chiudi indice", "skipToContent": "Vai al contenuto",
@@ -158,7 +164,8 @@ UI_DEFAULTS: Dict[str, Dict[str, str]] = {
         "examMode": "Modalità esame", "submitExam": "Consegna esame", "timeLeft": "Tempo", "exportAnki": "Anki (.tsv)",
         "score": "Livello", "grade": "Voto", "globalScore": "Totale", "toReview": "Da ripassare",
         "noWrong": "Nessun errore in sospeso in questo livello.", "empty": "Nessuna domanda in questo livello.",
-        "allCorrect": "Tutto corretto.", "correctCount": "corrette", "hint": "Suggerimento",
+        "allCorrect": "Tutto corretto.", "correctCount": "corrette", "hint": "Suggerimento", "exportProgress": "Progressi per l'IA", "exportProgressHint": "Copia un riepilogo dei tuoi errori da incollare in chat per un ripasso mirato",
+        "progressCopied": "Copiato: incollalo in chat ✓", "progressSaved": "Salvato .txt: incollalo in chat ✓",
     },
 }
 

@@ -262,6 +262,7 @@
             <button class="btn" type="button" id="btnExamMode" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6"/></svg><span>{{ui.examMode}}</span></button>
             <button class="btn primary" type="button" id="btnSubmitExam" hidden>{{ui.submitExam}}</button>
             <button class="btn" type="button" id="btnExportAnki"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>{{ui.exportAnki}}</span></button>
+            <button class="btn" type="button" id="btnExportProgress" title="{{ui.exportProgressHint}}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2M9 13l2 2 4-4"/></svg><span id="exportProgressLabel">{{ui.exportProgress}}</span></button>
             <button class="btn" type="button" id="btnOnlyWrong" aria-pressed="false">{{ui.onlyWrong}}</button>
             <button class="btn" type="button" id="btnResetQuiz">{{ui.reset}}</button>
           </div>
@@ -657,6 +658,55 @@
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  // Progress report for the AI tutor: a compact plain-text summary the student pastes back into the chat,
+  // so the next guide can target exactly the concepts they got wrong (closes the study loop).
+  $('#btnExportProgress').addEventListener('click', async () => {
+    const flat = s => String(s).replace(/\s+/g, ' ').trim();
+    const lines = [
+      '=== STUDY-GUIDES PROGRESS v1 ===',
+      `guide: ${flat(META.title || '')}`,
+      `storageKey: ${KEY}`,
+      `lang: ${META.lang || ''}`,
+      `date: ${new Date().toISOString().slice(0, 10)}`,
+    ];
+    [1, 2, 3].forEach(lv => {
+      const qs = QUIZ.filter(q => q.level === lv);
+      const done = qs.filter(q => q.id in answered).length;
+      const ok = qs.filter(q => answered[q.id]?.ok === true).length;
+      lines.push(`level ${lv}: ${ok}/${qs.length} correct, ${done}/${qs.length} answered`);
+    });
+    const missed = QUIZ.filter(q => wrong.has(q.id));
+    lines.push('', `missed (${missed.length}):`);
+    missed.forEach(q => {
+      const pick = answered[q.id]?.pickedIdx;
+      const picked = typeof pick === 'number' && pick >= 0 ? flat(q.options[pick]) : '(no answer)';
+      lines.push(`- [${q.id} · L${q.level}${q.src ? ' · ' + flat(q.src) : ''}] ${flat(q.q)}`);
+      lines.push(`    chose: ${picked} | correct: ${flat(q.options[q.correct])}`);
+    });
+    const unanswered = QUIZ.filter(q => !(q.id in answered)).map(q => q.id);
+    lines.push('', `unanswered: ${unanswered.length ? unanswered.join(', ') : 'none'}`);
+    const exs = $$('#practica .exercise');
+    const exOk = exs.filter(ex => $('.feedback', ex)?.classList.contains('ok')).length;
+    lines.push(`practice exercises solved this session: ${exOk}/${exs.length}`);
+    lines.push('=== END PROGRESS ===');
+    const text = lines.join('\n') + '\n';
+    const label = $('#exportProgressLabel');
+    try {
+      await navigator.clipboard.writeText(text);
+      label.textContent = UI.progressCopied;
+    } catch (e) {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = el('a', { href: url, download: `${KEY}_progress.txt` });
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      label.textContent = UI.progressSaved;
+    }
+    setTimeout(() => { label.textContent = UI.exportProgress; }, 2200);
   });
 
   render();

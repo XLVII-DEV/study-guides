@@ -53,6 +53,8 @@ class StudyGuidesTests(unittest.TestCase):
 
                 html_text = out_html.read_text(encoding="utf-8")
                 self.assertIn("btnExportAnki", html_text)
+                self.assertIn("btnExportProgress", html_text)
+                self.assertIn("=== STUDY-GUIDES PROGRESS v1 ===", html_text)
                 self.assertIn("btnExamMode", html_text)
                 self.assertNotIn("btnPrint", html_text)
                 self.assertIn('<svg class="ico', html_text)
@@ -89,6 +91,8 @@ class StudyGuidesTests(unittest.TestCase):
                 out = Path(tmp) / f"{lang}.html"
                 guide_builder.build(lp, out)
                 self.assertIn(f'<html lang="{lang}"', out.read_text(encoding="utf-8"))
+                for key in ("exportProgress", "exportProgressHint", "progressCopied", "progressSaved"):
+                    self.assertTrue(guide_builder.UI_DEFAULTS[lang].get(key), msg=f"{lang} missing UI label {key}")
 
     def test_edge_cases_english_hints_and_atomic_cli_write(self) -> None:
         base_raw = EXAMPLE_SLOTS.read_text(encoding="utf-8")
